@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="P3 Tracker">
+<title>Phase 3 · Workout Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg: #07090f;
+  --surface: #0d1018;
+  --surface2: #141821;
+  --surface3: #1b2030;
+  --accent: #4ade80;
+  --accent-dim: #071510;
+  --accent-dark: #22c55e;
+  --accent-glow: rgba(74,222,128,.18);
+  --blue: #60a5fa;
+  --blue-dim: #080f1c;
+  --blue-glow: rgba(96,165,250,.15);
+  --amber: #f59e0b;
+  --amber-dim: #130e00;
+  --red: #f87171;
+  --red-dim: #1a0808;
+  --purple: #a78bfa;
+  --purple-dim: #0e0a1c;
+  --teal: #2dd4bf;
+  --teal-dim: #050f0d;
+  --orange: #f97316;
+  --orange-dim: #150800;
+  --text: #f0f4ff;
+  --text-dim: #8899b0;
+  --muted: #4a5568;
+  --border: #1a2035;
+  --border-bright: #253050;
+  --input-bg: #090c14;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+}
+
+html { font-size: 16px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── SCROLLBAR ────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 0; height: 0; }
+
+/* ── LAYOUT ───────────────────────────────────────────────────── */
+.app { display: flex; flex-direction: column; height: 100dvh; max-width: 480px; margin: 0 auto; }
+
+/* ── TOP NAV ──────────────────────────────────────────────────── */
+.topnav {
+  background: linear-gradient(180deg, #0a0d14 0%, rgba(7,9,15,.97) 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 16px 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.topnav-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.app-brand-icon {
+  width: 28px; height: 28px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--teal) 100%);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.app-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.app-brand-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: .04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.app-brand-sub {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.session-clock {
+  font-family: 'Barlow Condensed', monospace;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  background: var(--surface2);
+  padding: 7px 13px 7px 10px;
+  border-radius: 24px;
+  border: 1px solid var(--border-bright);
+  letter-spacing: .04em;
+  touch-action: manipulation;
+  transition: border-color .2s, background .2s;
+}
+.session-clock:active { opacity: .8; }
+.session-clock .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: background .3s;
+}
+.session-clock.running { border-color: var(--accent-dark); background: linear-gradient(135deg, var(--surface2), #0c1a10); }
+.session-clock.running .dot { background: var(--accent); animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:.3; transform:scale(.8); } }
+
+/* WEEK PILLS */
+.week-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.week-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.week-pills { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; padding-bottom: 2px; }
+.week-pills::-webkit-scrollbar { display: none; }
+.wpill {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border-radius: 24px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  touch-action: manipulation;
+  transition: all .15s;
+}
+.wpill:active { transform: scale(.95); }
+.wpill.active { background: var(--purple); color: #fff; border-color: var(--purple); box-shadow: 0 0 16px rgba(167,139,250,.3); }
+.wpill.deload { border-color: #2a1f00; color: var(--amber); }
+.wpill.active.deload { background: var(--amber); color: #0a0700; border-color: var(--amber); box-shadow: 0 0 16px rgba(245,158,11,.3); }
+
+/* DAY TABS */
+.day-tabs { display: flex; gap: 5px; overflow-x: auto; scrollbar-width: none; padding-bottom: 1px; }
+.day-tabs::-webkit-scrollbar { display: none; }
+.dtab {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 24px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  touch-action: manipulation;
+  transition: all .15s;
+}
+.dtab:active { transform: scale(.95); }
+.dtab.active { background: var(--accent); color: #030f08; border-color: var(--accent); font-weight: 700; box-shadow: 0 0 14px var(--accent-glow); }
+.dtab.gym { border-color: #0e1a2a; }
+.dtab.gym.active { background: var(--blue); color: #020a14; border-color: var(--blue); box-shadow: 0 0 14px var(--blue-glow); }
+.dtab.done-day { border-color: #0d2015; color: var(--accent); }
+
+/* ── SCROLL CONTENT ───────────────────────────────────────────── */
+.scroll-body { flex: 1; overflow-y: auto; padding: 14px 14px 110px; overscroll-behavior: contain; }
+
+/* SESSION PROGRESS */
+.session-progress { height: 2px; background: var(--surface3); position: relative; margin-top: 12px; border-radius: 1px; overflow: hidden; }
+.session-prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent) 0%, var(--teal) 100%); border-radius: 1px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+
+/* ── BANNERS ──────────────────────────────────────────────────── */
+.banner {
+  border-radius: var(--radius-sm);
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+.banner strong { font-weight: 700; display: block; margin-bottom: 2px; font-family: 'Barlow Condensed', sans-serif; font-size: 13px; letter-spacing: .03em; text-transform: uppercase; }
+.banner-blue { background: var(--blue-dim); border: 1px solid #0e1f38; color: var(--blue); }
+.banner-amber { background: var(--amber-dim); border: 1px solid #2a1f00; color: var(--amber); }
+.banner-green { background: var(--accent-dim); border: 1px solid #0f2018; color: var(--accent); }
+.banner-purple { background: var(--purple-dim); border: 1px solid #1a1230; color: var(--purple); }
+
+/* NUTRITION STRIP */
+.nut-strip { display: flex; gap: 6px; margin-bottom: 14px; }
+.nut-card { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 5px; text-align: center; }
+.nut-label { font-size: 9px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+.nut-val { font-size: 13px; font-weight: 700; font-family: 'Barlow Condensed', sans-serif; }
+
+/* ── SECTION ──────────────────────────────────────────────────── */
+.section-hdr { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; }
+.section-pill {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 24px;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.sp-green { background: var(--accent-dim); color: var(--accent); border: 1px solid #0e2018; }
+.sp-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid #0e1f38; }
+.sp-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid #2a1f00; }
+.sp-red { background: var(--red-dim); color: var(--red); border: 1px solid #2a1010; }
+.sp-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid #1a1230; }
+.sp-teal { background: var(--teal-dim); color: var(--teal); border: 1px solid #0a1f1c; }
+.section-note { font-size: 10px; color: var(--muted); margin-left: auto; font-family: 'Barlow Condensed', sans-serif; letter-spacing: .04em; }
+
+/* ── EXERCISE CARD ────────────────────────────────────────────── */
+.ex-card {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: border-color .25s, box-shadow .25s;
+}
+.ex-card.complete {
+  border-color: #164028;
+  box-shadow: 0 0 24px var(--accent-dim), inset 0 0 24px rgba(74,222,128,.03);
+}
+.ex-header { padding: 14px 14px 11px; }
+.ex-top { display: flex; align-items: flex-start; gap: 11px; }
+.ex-check {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border-bright);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+}
+.ex-card.complete .ex-check {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent-dark);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.ex-chk-icon { width: 12px; height: 12px; opacity: 0; transition: opacity .2s; transform: scale(.8); transition: opacity .2s, transform .2s; }
+.ex-card.complete .ex-chk-icon { opacity: 1; transform: scale(1); }
+.ex-info { flex: 1; min-width: 0; }
+.ex-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 5px;
+  letter-spacing: .02em;
+  line-height: 1.2;
+}
+.ex-card.complete .ex-name { color: var(--accent); }
+.ex-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 5px; }
+.chip {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-xs);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.chip-gray { background: var(--surface3); color: var(--text-dim); }
+.chip-blue { background: var(--blue-dim); color: var(--blue); border: 1px solid #0e1f38; }
+.chip-amber { background: var(--amber-dim); color: var(--amber); border: 1px solid #2a1f00; }
+.chip-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid #1a1230; }
+.chip-green { background: var(--accent-dim); color: var(--accent); border: 1px solid #0e2018; }
+.prev-weight {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  color: var(--teal);
+  font-weight: 500;
+  margin-top: 2px;
+  letter-spacing: .03em;
+}
+.ex-expand-btn {
+  font-size: 18px;
+  color: var(--muted);
+  padding: 4px 0;
+  margin-left: auto;
+  flex-shrink: 0;
+  margin-top: 0;
+  line-height: 1;
+  font-weight: 300;
+  transition: color .15s;
+}
+.ex-header:active .ex-expand-btn { color: var(--text); }
+
+/* SET LOGGER */
+.set-logger { padding: 0 14px 14px; }
+.set-logger-hdr {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 40px 52px;
+  gap: 6px;
+  padding: 5px 6px;
+  margin-bottom: 5px;
+}
+.sl-hdr-cell {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.set-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 1fr 40px 52px;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  background: var(--surface2);
+  border: 1px solid transparent;
+  transition: opacity .2s, border-color .2s;
+}
+.set-row.done-row { opacity: .55; border-color: #0d2015; }
+.set-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+.set-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-xs);
+  padding: 8px 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  width: 100%;
+  text-align: center;
+  -webkit-appearance: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.set-input:focus {
+  outline: none;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 2px var(--blue-glow);
+}
+.set-input::placeholder { color: var(--muted); font-size: 11px; font-weight: 400; }
+
+/* SET DONE BUTTON */
+.set-done-btn {
+  width: 52px;
+  height: 46px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-bright);
+  background: var(--surface3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: all .18s cubic-bezier(.4,0,.2,1);
+  flex-shrink: 0;
+}
+.set-done-btn.done {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  border-color: var(--accent-dark);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.set-done-btn:active { transform: scale(0.88); opacity: .9; }
+.set-done-icon { width: 18px; height: 18px; opacity: .25; transition: opacity .2s; }
+.set-done-btn.done .set-done-icon { opacity: 1; }
+
+.add-set-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: var(--blue);
+  padding: 8px 6px 0;
+  cursor: pointer;
+  touch-action: manipulation;
+  text-transform: uppercase;
+  transition: opacity .15s;
+}
+.add-set-btn:active { opacity: .6; }
+
+/* NOTES */
+.notes-section { padding: 0 14px 14px; }
+.notes-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: 'Barlow', sans-serif;
+  color: var(--text);
+  resize: none;
+  min-height: 52px;
+  line-height: 1.5;
+  transition: border-color .15s, box-shadow .15s;
+}
+.notes-input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 2px rgba(167,139,250,.15); }
+.notes-input::placeholder { color: var(--muted); font-size: 12px; }
+
+/* EXERCISE COACH NOTE */
+.ex-note-text {
+  padding: 10px 14px 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  border-top: 1px solid var(--border);
+}
+
+/* ADD EXERCISE BUTTON */
+.add-ex-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px;
+  border: 1.5px dashed var(--border-bright);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  touch-action: manipulation;
+  margin-top: 6px;
+  transition: all .2s;
+}
+.add-ex-btn:active { background: var(--surface2); color: var(--text); border-style: solid; }
+
+/* CUSTOM EXERCISE MODAL */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface2) 100%);
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 24px 18px 44px;
+  border-top: 1px solid var(--border-bright);
+}
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.modal-field { margin-bottom: 14px; }
+.modal-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 6px;
+  display: block;
+}
+.modal-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 15px;
+  font-family: 'Barlow', sans-serif;
+  color: var(--text);
+  transition: border-color .15s;
+}
+.modal-input:focus { outline: none; border-color: var(--blue); }
+.modal-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+.modal-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  touch-action: manipulation;
+  transition: opacity .15s, transform .15s;
+}
+.modal-btn:active { transform: scale(0.97); opacity: .9; }
+.modal-btn-cancel { background: var(--surface3); color: var(--text-dim); }
+.modal-btn-save { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%); color: #030f08; }
+
+/* REST TIMER OVERLAY */
+.rest-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.rest-overlay.open { display: flex; }
+.rest-card {
+  background: linear-gradient(160deg, #0f1320 0%, #141821 100%);
+  border-radius: 28px;
+  padding: 36px 28px 32px;
+  text-align: center;
+  min-width: 300px;
+  border: 1px solid var(--border-bright);
+  box-shadow: 0 32px 64px rgba(0,0,0,.5), 0 0 60px rgba(74,222,128,.06);
+}
+.rest-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  margin-bottom: 10px;
+}
+.rest-time {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 72px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 4px;
+  line-height: 1;
+  letter-spacing: -.02em;
+  transition: color .3s;
+}
+.rest-time.urgent { color: var(--amber); }
+.rest-time.done { color: var(--red); }
+.rest-progress {
+  width: 100%;
+  height: 6px;
+  background: var(--surface3);
+  border-radius: 3px;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+.rest-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--teal));
+  border-radius: 3px;
+  transition: width .5s linear;
+}
+.rest-bar.urgent { background: linear-gradient(90deg, var(--amber), var(--orange)); }
+.rest-preset-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+.rest-preset {
+  padding: 8px 16px;
+  border-radius: 24px;
+  background: var(--surface3);
+  border: 1px solid var(--border-bright);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  touch-action: manipulation;
+  letter-spacing: .04em;
+  transition: all .15s;
+}
+.rest-preset.active { background: var(--accent); color: #030f08; border-color: var(--accent); }
+.rest-preset:active { transform: scale(.93); }
+.rest-btns { display: flex; gap: 10px; }
+.rest-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  touch-action: manipulation;
+  transition: opacity .15s, transform .15s;
+}
+.rest-btn:active { transform: scale(0.97); opacity: .9; }
+.rest-skip { background: var(--surface3); color: var(--text-dim); }
+.rest-pause { background: var(--blue-dim); color: var(--blue); border: 1px solid #0e1f38; }
+
+/* COUNTDOWN TIMER (inline, for timed exercises) */
+.countdown-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 5px;
+  background: var(--surface2);
+}
+.countdown-set-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  width: 32px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.countdown-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-bright);
+  background: var(--surface);
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: .03em;
+  transition: all .15s;
+}
+.countdown-btn.running {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: 0 0 12px var(--blue-glow);
+}
+.countdown-btn.done-timer {
+  background: var(--accent-dim);
+  border-color: #164028;
+  color: var(--accent);
+}
+.countdown-btn:active { transform: scale(0.97); }
+.countdown-progress { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; margin: 0 2px; }
+.countdown-prog-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--teal)); border-radius: 3px; transition: width .5s linear; }
+.countdown-prog-fill.urgent { background: linear-gradient(90deg, var(--amber), var(--orange)); }
+.countdown-prog-fill.done-fill { background: linear-gradient(90deg, var(--accent), var(--teal)); }
+.countdown-row .set-done-btn { flex-shrink: 0; }
+.countdown-reset-btn {
+  width: 36px; height: 36px;
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.countdown-reset-btn:active { background: var(--surface3); color: var(--amber); transform: scale(.88); }
+
+/* COMPLETE BANNER */
+.done-banner {
+  background: linear-gradient(135deg, #0a2014 0%, #0d2a1a 100%);
+  border: 1px solid #164028;
+  border-radius: var(--radius);
+  padding: 24px 18px;
+  text-align: center;
+  margin-top: 14px;
+  box-shadow: 0 0 40px var(--accent-dim);
+}
+.done-banner h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.done-banner p { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+
+/* CARDIO DAY */
+.cardio-day-card {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 16px;
+  margin-bottom: 12px;
+}
+.cardio-day-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.cardio-detail { font-size: 13px; color: var(--text-dim); line-height: 1.75; white-space: pre-line; }
+.cardio-tap-done {
+  border-radius: var(--radius);
+  padding: 18px;
+  text-align: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  margin-top: 12px;
+  border: 1.5px solid var(--border-bright);
+  background: var(--surface2);
+  transition: all .2s;
+}
+.cardio-tap-done.done {
+  background: linear-gradient(135deg, #0a2014 0%, #0d2a1a 100%);
+  border-color: #164028;
+  box-shadow: 0 0 24px var(--accent-dim);
+}
+.cardio-tap-done:active { transform: scale(0.98); }
+.cardio-tap-txt {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.cardio-tap-done.done .cardio-tap-txt { color: var(--accent); }
+.cardio-tap-done:not(.done) .cardio-tap-txt { color: var(--text-dim); }
+
+/* WEEK INFO BOX */
+.week-info {
+  background: var(--purple-dim);
+  border: 1px solid #180f38;
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
+  margin-bottom: 12px;
+}
+.week-info-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--purple);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.week-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.wi-row { font-size: 12px; color: var(--muted); }
+.wi-row span { color: var(--text); font-weight: 600; }
+
+/* WEEK SYNOPSIS */
+.week-synopsis {
+  background: linear-gradient(160deg, var(--surface) 0%, var(--surface2) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.ws-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--purple);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 14px;
+}
+.ws-hike-row {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 14px;
+  background: var(--surface3);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.ws-hike-cell { flex: 1; padding: 12px 8px; text-align: center; }
+.ws-hike-divider { width: 1px; background: var(--border); flex-shrink: 0; }
+.ws-hike-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 6px;
+}
+.ws-hike-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: -.01em;
+}
+.ws-hike-sub { font-family: 'Barlow Condensed', sans-serif; font-size: 11px; color: var(--muted); font-weight: 500; }
+.ws-highlight {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.65;
+  padding: 12px 14px;
+  background: var(--surface3);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--purple);
+}
+
+/* MACRO CARD */
+.macro-card {
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 14px;
+  border: 1px solid;
+}
+.macro-card.training-day { background: linear-gradient(160deg, #071510 0%, #0a1d12 100%); border-color: #0f2518; }
+.macro-card.lowcarb-day { background: linear-gradient(160deg, #120e00 0%, #1a1500 100%); border-color: #2a1f00; }
+.macro-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.macro-card-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.macro-card.training-day .macro-card-title { color: var(--accent); }
+.macro-card.lowcarb-day .macro-card-title { color: var(--amber); }
+.macro-badge {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 12px;
+  letter-spacing: .04em;
+}
+.macro-card.training-day .macro-badge { background: var(--accent-dim); color: var(--accent); }
+.macro-card.lowcarb-day .macro-badge { background: var(--amber-dim); color: var(--amber); }
+.macro-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.macro-cell {
+  text-align: center;
+  background: rgba(0,0,0,.3);
+  border-radius: var(--radius-sm);
+  padding: 10px 4px;
+  border: 1px solid rgba(255,255,255,.04);
+}
+.macro-cell-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 4px;
+  letter-spacing: -.01em;
+}
+.macro-cell-lbl {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.macro-note { font-size: 12px; color: var(--text-dim); margin-top: 12px; line-height: 1.6; }
+.macro-note strong { font-weight: 600; color: var(--text); }
+
+/* CONTENT PROGRESS BAR */
+.content-progress-wrap { margin-bottom: 14px; }
+.content-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.content-progress-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.content-progress-pct {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: .04em;
+}
+.content-progress-bar { height: 7px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+.content-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent) 0%, var(--teal) 100%);
+  border-radius: 4px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
+.content-progress-fill.low { background: linear-gradient(90deg, var(--amber) 0%, var(--orange) 100%); }
+
+/* NO-WEIGHT set row */
+.set-row-noweight {
+  display: grid;
+  grid-template-columns: 32px 1fr 40px 52px;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  background: var(--surface2);
+  border: 1px solid transparent;
+  transition: opacity .2s, border-color .2s;
+}
+
+/* REST BUTTON — per set row */
+.set-rest-btn {
+  width: 40px;
+  height: 46px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: all .15s;
+}
+.set-rest-btn:active { background: var(--blue-dim); color: var(--blue); border-color: var(--blue); transform: scale(.9); }
+.set-row-noweight.done-row { opacity: .55; border-color: #0d2015; }
+.set-reps-static {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+/* ── NO SPIN BUTTONS ─────────────────────────────────────────── */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* ── REDUCED MOTION ──────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- REST TIMER OVERLAY -->
+<div class="rest-overlay" id="restOverlay">
+  <div class="rest-card">
+    <div class="rest-label">Rest Timer</div>
+    <div class="rest-time" id="restDisplay">1:30</div>
+    <div class="rest-progress"><div class="rest-bar" id="restBar" style="width:100%"></div></div>
+    <div class="rest-preset-row">
+      <div class="rest-preset" onclick="setRestPreset(60)">1:00</div>
+      <div class="rest-preset active" onclick="setRestPreset(90)" id="preset90">1:30</div>
+      <div class="rest-preset" onclick="setRestPreset(120)">2:00</div>
+      <div class="rest-preset" onclick="setRestPreset(180)">3:00</div>
+    </div>
+    <div class="rest-btns">
+      <button class="rest-btn rest-pause" id="restPauseBtn" onclick="toggleRestPause()">Pause</button>
+      <button class="rest-btn rest-skip" onclick="closeRest()">Skip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EXERCISE MODAL -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title">Add Exercise</div>
+    <div class="modal-field">
+      <label class="modal-label">Exercise Name</label>
+      <input class="modal-input" type="text" id="newExName" placeholder="e.g. Goblet Squat">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Equipment / Notes</label>
+      <input class="modal-input" type="text" id="newExEquip" placeholder="e.g. Dumbbells · 18&quot; box">
+    </div>
+    <div class="modal-row">
+      <div class="modal-field">
+        <label class="modal-label">Sets</label>
+        <input class="modal-input" type="number" id="newExSets" value="3" min="1" max="10">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Target Reps</label>
+        <input class="modal-input" type="number" id="newExReps" value="10" min="1" max="100">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Target Wt</label>
+        <input class="modal-input" type="number" id="newExWeight" placeholder="lbs">
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn modal-btn-save" onclick="saveNewEx()">Add Exercise</button>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <!-- TOP NAV -->
+  <div class="topnav">
+    <div class="topnav-row1">
+      <div class="app-brand">
+        <div class="app-brand-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 2L10 6H14L11 9L12.5 13L8 10.5L3.5 13L5 9L2 6H6L8 2Z" fill="#030f08"/>
+          </svg>
+        </div>
+        <div class="app-brand-text">
+          <div class="app-brand-title">Colorado 100</div>
+          <div class="app-brand-sub">Phase 3 Tracker</div>
+        </div>
+      </div>
+      <div class="session-clock" id="sessionClock" onclick="toggleSessionTimer()">
+        <div class="dot"></div>
+        <span id="sessionTimeDisplay">0:00</span>
+      </div>
+    </div>
+    <div class="week-row">
+      <span class="week-lbl">Week</span>
+      <div class="week-pills" id="weekPills"></div>
+    </div>
+    <div class="day-tabs" id="dayTabs"></div>
+    <div class="session-progress"><div class="session-prog-fill" id="sessProgFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- SCROLL BODY -->
+  <div class="scroll-body" id="scrollBody"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// PHASE 3 DATA
+// ═══════════════════════════════════════════════════════════════
+
+const WEEK_META = {
+  9:  { label:'Wk 9',  deload:false, stairTime:60, vest:'No vest',    packLbs:25, satMi:10, sunMi:'Walk only', gymNote:'Phase 2 weights +10%. First Phase 3 week — find your new baselines.',    cal:'2,143', carbs:'215g',
+        highlight:'First Phase 3 week. Your Sunday is still a recovery walk — back-to-back hikes start next week. Use this week to find your new Phase 3 weight baselines on every lift. Expect to work harder than Phase 2 peak.' },
+  10: { label:'Wk 10', deload:false, stairTime:60, vest:'No vest',    packLbs:25, satMi:11, sunMi:7,          gymNote:'Phase 2 weights +10%. First back-to-back hike week. Protect Sunday hike.', cal:'2,143', carbs:'215g',
+        highlight:'MILESTONE — first back-to-back weekend hike. Sunday 7 miles on already-tired legs is the point. Anyone can do 15 miles on fresh legs — your hike is about miles 60-100 on tired ones. Do NOT skip the Sunday hike for any gym session.' },
+  11: { label:'Wk 11', deload:false, stairTime:60, vest:'10 lb vest', packLbs:28, satMi:12, sunMi:8,          gymNote:'Phase 2 weights +15%. Weighted vest begins Thursday stair climber.',        cal:'2,143', carbs:'215g',
+        highlight:'Weighted vest begins on stair climber (10 lb, 60 min). This changes the demand significantly — reduce pace if needed to complete the full duration. Pack weight increases to 28 lbs on both hike days this week.' },
+  12: { label:'Wk 12', deload:false, stairTime:60, vest:'10 lb vest', packLbs:28, satMi:13, sunMi:9,          gymNote:'Phase 2 weights +15%. Push weights if form is solid.',                    cal:'2,143', carbs:'215g',
+        highlight:'Mid-phase checkpoint. You should feel measurably stronger than week 9. Push weights this week if form has been solid. Saturday 13 miles is the longest single day yet — eat and drink on a schedule from mile 1.' },
+  13: { label:'Wk 13', deload:true,  stairTime:50, vest:'No vest',    packLbs:20, satMi:10, sunMi:6,          gymNote:'DELOAD — reduce all Phase 3 working weights by 20-25%. Same exercises, same reps, lighter load. This is a reduction from your current Phase 3 weights, not a return to Phase 2 numbers. Mandatory.',  cal:'2,143', carbs:'215g',
+        highlight:'DELOAD WEEK — mandatory, not optional. Reduce all gym weights 20-25% from your current Phase 3 working loads (not back to Phase 2 — just lighter than what you did in weeks 11-12). Shorter hikes, lighter pack, no vest on the stair climber. Your body consolidates 4 weeks of adaptation this week. Athletes who skip deloads plateau or get injured.' },
+  14: { label:'Wk 14', deload:false, stairTime:70, vest:'12 lb vest', packLbs:30, satMi:14, sunMi:10,         gymNote:'Phase 2 weights +20%. Deficit reduces to 500 cal. Increase carbs to 250g.', cal:'2,500+', carbs:'250g',
+        highlight:'CRITICAL NUTRITION SHIFT — deficit drops from 1,000 to 500 cal/day. Carbs increase to 250g on training days. Performance now takes priority over fat loss. Pack reaches 30 lbs — your Colorado trail weight. Saturday 14 mi / Sunday 10 mi = 24 miles this weekend.' },
+  15: { label:'Wk 15', deload:false, stairTime:70, vest:'15 lb vest', packLbs:30, satMi:15, sunMi:11,         gymNote:'Maintain peak weights. Deficit 250 cal. Carbs 280g on training/hike days.',  cal:'2,800+', carbs:'280g',
+        highlight:'Near maintenance calories (250 cal deficit only). Carbs 280g. Saturday 15 miles matches your target daily distance on the Colorado trail. Back-to-back 15 + 11 miles = 26 miles over 2 days. Eat on trail every 60-90 min — bonking at mile 12 is not an option.' },
+  16: { label:'Wk 16', deload:false, stairTime:70, vest:'15 lb vest', packLbs:30, satMi:17, sunMi:13,         gymNote:'PEAK WEEK — reduce gym volume 20% going into taper. Hike peak: 17mi/13mi.',  cal:'3,000', carbs:'280g',
+        highlight:'PEAK WEEK — the hardest training weekend of the program. Saturday 17 miles + Sunday 13 miles = 30 miles across 2 days with a 30 lb pack. Treat Saturday like a race day: full pre-hike nutrition, early start, poles on every descent, eat every 60-90 min. After this week, Phase 4 taper begins.' },
+};
+
+// ── NUTRITION DATA ─────────────────────────────────────────────
+const LOW_CARB_DAYS = ['tue','fri'];
+
+function getDayNutrition(wk, day) {
+  const lc = LOW_CARB_DAYS.includes(day);
+  if (wk <= 13) {
+    return lc
+      ? { cal:'2,143', P:'215g', C:'150g', F:'70g', lowCarb:true,
+          note:'<strong>Lower-carb day.</strong> 65g fewer carbs vs training days. Higher fat (70g) supports testosterone and joint health at 53. Pre-walk: light protein only, no big carb load.' }
+      : { cal:'2,143', P:'215g', C:'215g', F:'55g', lowCarb:false,
+          note:'<strong>Training day.</strong> Full carb allocation. Pre-workout 7am: 40-60g carbs + 25-30g protein. Post-workout within 45 min: 30-50g carbs + 30-40g protein. Casein shake before bed.' };
+  } else if (wk === 14) {
+    return lc
+      ? { cal:'2,500', P:'215g', C:'180g', F:'70g', lowCarb:true,
+          note:'<strong>Lower-carb day — deficit now 500 cal.</strong> Carbs up from earlier phases as performance takes priority. Still lower than training days.' }
+      : { cal:'2,643', P:'215g', C:'250g', F:'65g', lowCarb:false,
+          note:'<strong>Training day — deficit 500 cal.</strong> Carbs up to 250g. Performance over fat loss from this week forward.' };
+  } else if (wk === 15) {
+    return lc
+      ? { cal:'2,800', P:'215g', C:'210g', F:'70g', lowCarb:true,
+          note:'<strong>Near-maintenance day — 250 cal deficit.</strong> Fuel the back-to-back hike weeks. LC/training carb gap is narrowing intentionally.' }
+      : { cal:'2,893', P:'215g', C:'280g', F:'70g', lowCarb:false,
+          note:'<strong>Training day — near maintenance.</strong> Carbs 280g. Peak mileage weeks require full glycogen. Eat on trail every 60-90 min on hike days.' };
+  } else {
+    return { cal:'3,000+', P:'215g', C: lc ? '220g' : '280g', F:'75g', lowCarb:false,
+      note:'<strong>Peak week — at maintenance or slight surplus.</strong> No meaningful deficit. Hike days target 3,500+ cal including on-trail food. Protein stays 215g daily no matter what.' };
+  }
+}
+
+function renderMacroCard(wk, day) {
+  const n = getDayNutrition(wk, day);
+  const cls = n.lowCarb ? 'lowcarb-day' : 'training-day';
+  const title = n.lowCarb ? 'Lower-Carb Day' : 'Training Day';
+  return `<div class="macro-card ${cls}">
+    <div class="macro-card-header">
+      <div class="macro-card-title">${title}</div>
+      <div class="macro-badge">${n.cal} cal</div>
+    </div>
+    <div class="macro-grid">
+      <div class="macro-cell"><div class="macro-cell-val">${n.P}</div><div class="macro-cell-lbl">Protein</div></div>
+      <div class="macro-cell"><div class="macro-cell-val">${n.C}</div><div class="macro-cell-lbl">Carbs</div></div>
+      <div class="macro-cell"><div class="macro-cell-val">${n.F}</div><div class="macro-cell-lbl">Fat</div></div>
+      <div class="macro-cell"><div class="macro-cell-val">${n.cal}</div><div class="macro-cell-lbl">Cal</div></div>
+    </div>
+    <div class="macro-note">${n.note}</div>
+  </div>`;
+}
+
+function renderContentProgress(wk, day) {
+  const { done, total } = countCompleted(wk, day);
+  const pct = total > 0 ? Math.round(done / total * 100) : 0;
+  return `<div class="content-progress-wrap">
+    <div class="content-progress-header">
+      <span class="content-progress-label">Session Progress</span>
+      <span class="content-progress-pct">${done} / ${total} &middot; ${pct}%</span>
+    </div>
+    <div class="content-progress-bar">
+      <div class="content-progress-fill ${pct < 50 ? 'low' : ''}" style="width:${pct}%"></div>
+    </div>
+  </div>`;
+}
+
+function renderWeekSynopsis(wk) {
+  const w = WEEK_META[wk];
+  const sunHike = typeof w.sunMi === 'number'
+    ? `${w.sunMi} mi · ${w.packLbs} lb pack`
+    : w.sunMi;
+  return `<div class="week-synopsis">
+    <div class="ws-title">Week ${wk} Overview ${w.deload ? '· DELOAD' : ''}</div>
+    <div class="ws-hike-row">
+      <div class="ws-hike-cell">
+        <div class="ws-hike-label">Sat Hike</div>
+        <div class="ws-hike-val">${w.satMi} mi</div>
+        <div class="ws-hike-sub">${w.packLbs} lb pack</div>
+      </div>
+      <div class="ws-hike-divider"></div>
+      <div class="ws-hike-cell">
+        <div class="ws-hike-label">Sun Hike</div>
+        <div class="ws-hike-val">${typeof w.sunMi === 'number' ? w.sunMi + ' mi' : w.sunMi}</div>
+        <div class="ws-hike-sub">${typeof w.sunMi === 'number' ? w.packLbs + ' lb pack' : 'easy effort'}</div>
+      </div>
+      <div class="ws-hike-divider"></div>
+      <div class="ws-hike-cell">
+        <div class="ws-hike-label">Stair Climber</div>
+        <div class="ws-hike-val">${w.stairTime} min</div>
+        <div class="ws-hike-sub">${w.vest}</div>
+      </div>
+    </div>
+    <div class="ws-highlight">${w.highlight}</div>
+  </div>`;
+}
+const WARMUP = [
+  { id:'wu_clam', name:'Clamshells',              noWeight:true, targetSets:2, targetReps:15, equip:'Light resistance band above knees', chips:[{t:'2 sets',c:'gray'},{t:'15 each side',c:'gray'},{t:'MCL warm-up',c:'green'}], note:'Hips stacked — no rocking. Each side = 1 set.' },
+  { id:'wu_tke',  name:'Terminal Knee Extensions', noWeight:true, targetSets:2, targetReps:15, equip:'Band behind knee, anchored low',    chips:[{t:'2 sets',c:'gray'},{t:'15 each leg',c:'gray'},{t:'MCL warm-up',c:'green'}], note:'Squeeze VMO at full extension. Hold 1 sec.' },
+  { id:'wu_gb',   name:'Glute Bridges',            noWeight:true, targetSets:2, targetReps:12, equip:'Bodyweight',                       chips:[{t:'2 sets',c:'gray'},{t:'12 reps',c:'gray'},{t:'MCL warm-up',c:'green'}], note:'Press through heels. Knees must not fall inward.' },
+  { id:'wu_hip',  name:'Hip Flexor Lunge Stretch', noWeight:true, targetSets:1, targetReps:1,  timedSeconds:60, equip:'Bodyweight',      chips:[{t:'1 set',c:'gray'},{t:'60 sec each side',c:'amber'},{t:'MCL warm-up',c:'green'}], note:'Lunge position, rear knee down. Counteracts pack-induced pelvic tilt. Timer counts 60 sec — do each side.' },
+  { id:'wu_tib',  name:'Tibialis Raises (warm-up)', noWeight:true, targetSets:2, targetReps:15, equip:'Wall for support',               chips:[{t:'2 sets',c:'gray'},{t:'15 reps',c:'gray'},{t:'Shin activation',c:'amber'}], note:'Back against wall, feet 12" out. Lift toes, balance on heels 1 sec. Every session in Phase 3.' },
+];
+
+// Monday — Lower Body A
+const MON_EXERCISES = [
+  { id:'mon_stepup', name:'Weighted Step-Ups',        targetSets:4, targetReps:15, equip:'Heavy DBs · 24" box target · 25-35 lbs each hand', chips:[{t:'4 sets',c:'blue'},{t:'15 each leg',c:'blue'},{t:'24" box',c:'amber'}], note:'Drive through heel ONLY. Controlled 3-sec descent. This is the most hiking-specific exercise in the program — treat it that way.' },
+  { id:'mon_thrust', name:'Hip Thrust',               targetSets:4, targetReps:12, equip:'Heavy barbell · 135-185 lbs target', chips:[{t:'4 sets',c:'blue'},{t:'12 reps',c:'blue'},{t:'2 sec pause at top',c:'amber'}], note:'Bench behind you, bar across hips. Squeeze glutes hard. 2-second hold at top. Phase 3 target: 135-185 lbs.' },
+  { id:'mon_nordic', name:'Nordic Hamstring Curl', noWeight:true, targetSets:3, targetReps:7, equip:'Partner to anchor feet or GHD machine', chips:[{t:'3 sets',c:'blue'},{t:'6-8 reps',c:'blue'},{t:'KEY — downhill protection',c:'red'}], note:'Lower torso toward floor as slowly as possible. Catch with hands when you can no longer resist. Push back up with arms. The descent IS the exercise. Start with 4-5 reps if new to this.' },
+  { id:'mon_stepdn', name:'Eccentric Step-Down (loaded)', targetSets:3, targetReps:10, equip:'10-15 lb DB at chest · 8-12" box', chips:[{t:'3 sets',c:'blue'},{t:'10 each leg',c:'blue'},{t:'3-4 sec descent',c:'amber'}], note:'Stand at edge of box, toes forward. Lower free leg over 3-4 seconds. Tap heel, drive back up through standing leg. Slow descent = the entire point.' },
+];
+
+// Wednesday — Upper Body + Core
+const WED_EXERCISES = [
+  { id:'wed_row',    name:'Dumbbell Row',             targetSets:4, targetReps:12, equip:'Heavy DBs · challenging by rep 10-11', chips:[{t:'4 sets',c:'blue'},{t:'12 each arm',c:'blue'},{t:'Heavy — Phase 3',c:'amber'}], note:'Back flat and parallel to floor. Lead with elbow not hand. Zero torso rotation. Full arm extension at bottom.' },
+  { id:'wed_pallof', name:'Pallof Press — Walking',   noWeight:true, targetSets:3, targetReps:10, equip:'Resistance band or cable machine', chips:[{t:'3 sets',c:'blue'},{t:'10 steps each dir.',c:'blue'},{t:'Anti-rotation',c:'purple'}], note:'Press band out at belly-button height, then walk 5 steps sideways while maintaining the press. Walk back. Anti-rotation under dynamic conditions — more trail-specific than static version.' },
+  { id:'wed_twist',  name:'Russian Twist with Press', targetSets:3, targetReps:15, equip:'10-15 lb plate or medicine ball', chips:[{t:'3 sets',c:'blue'},{t:'15 each side',c:'blue'},{t:'Monroe variation',c:'purple'}], note:'Heels slightly off floor. Rotate left, tap plate, PRESS plate away from body, pull back, rotate right. The press-out trains trekking pole shoulder stability simultaneously.' },
+  { id:'wed_dead',   name:'Dead Bug',                 noWeight:true, targetSets:3, targetReps:12, equip:'Bodyweight (optional: 5 lb DB in extending arm)', chips:[{t:'3 sets',c:'blue'},{t:'12 each side (slow)',c:'blue'},{t:'Core anti-extension',c:'purple'}], note:'Lower back GLUED to floor the entire time — this is the only rule that matters. 3 sec down, 1 sec pause, 3 sec return. Optional: hold 5 lb DB in extending arm.' },
+  { id:'wed_plank',  name:'Plank',                   targetSets:3, targetReps:1, timedSeconds:60, equip:'Bodyweight', chips:[{t:'3 sets',c:'blue'},{t:'60 sec',c:'amber'},{t:'Core endurance',c:'purple'}], note:'Squeeze glutes and abs. Elbows under shoulders. Stop when form breaks. 45-sec perfect > 60-sec sloppy.' },
+  { id:'wed_suit',   name:'Suitcase Carry',           targetSets:3, targetReps:1,  equip:'Heavy DB or KB · 60 yds each side',  chips:[{t:'3 sets',c:'blue'},{t:'60 yds each side',c:'blue'},{t:'Lateral stability',c:'amber'}], note:'Phase 3: 60 yards each side. Shoulders perfectly level throughout. Core braced. Target weight: 50-60% of bodyweight (110-130 lbs for you).' },
+];
+
+// Thursday — Lower Body B + Stair Climber + Lower Leg
+const THU_MAIN = [
+  { id:'thu_lunge',  name:'Walking Lunges',           targetSets:3, targetReps:20, equip:'DBs or plate at chest · 20 yds back and forth', chips:[{t:'3 sets',c:'blue'},{t:'20 yds / set',c:'blue'},{t:'Monroe — NEW P3',c:'red'}], note:'Slow and controlled — absorb momentum with quads. Rear knee barely taps floor. This mimics the eccentric quad load of downhill hiking. Not a speed exercise.' },
+  { id:'thu_split',  name:'Bulgarian Split Squat',    targetSets:4, targetReps:12, equip:'Heavy DBs · rear foot on bench',     chips:[{t:'4 sets',c:'blue'},{t:'12 each leg',c:'blue'},{t:'2 sec pause at bottom',c:'amber'}], note:'Phase 3: 2-second pause at the bottom instead of 1. Weight should make rep 11-12 genuinely hard. Knee in line with ankle throughout.' },
+  { id:'thu_slrdl',  name:'Single-Leg Romanian DL',   targetSets:3, targetReps:10, equip:'KB or DB · Monroe-specified',        chips:[{t:'3 sets',c:'blue'},{t:'10 each leg',c:'blue'},{t:'Monroe variation',c:'red'}], note:'Stand on one leg. Hinge forward to grab weight from floor. Squeeze glute and hamstring to return to single-leg stand. Core tight, spine neutral. All reps on one leg then switch.' },
+  { id:'thu_legpr',  name:'Leg Press',                targetSets:3, targetReps:10, equip:'Machine · Phase 3 heavy load',       chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'Full range',c:'amber'}], note:'Full range of motion every rep — do not reduce depth to add weight. Phase 3 loads should be heavier than your Phase 2 Thursday sets.' },
+];
+
+const THU_LOWER_LEG = [
+  { id:'thu_calf1',  name:'Single-Leg Eccentric Calf Raises', targetSets:3, targetReps:12, equip:'Edge of step · 10-20 lb DB same-side hand', chips:[{t:'3 sets',c:'red'},{t:'12 each leg',c:'red'},{t:'3-4 sec descent',c:'amber'}], note:'Rise to toes, SLOWLY lower heels below step edge over 3-4 seconds. Single-leg with added load. Achilles tendon protection for 14+ mile days.' },
+  { id:'thu_calf2',  name:'Bent-Knee Eccentric Calf Raises',  targetSets:3, targetReps:12, equip:'Same step · slight knee bend throughout',    chips:[{t:'3 sets',c:'red'},{t:'12 each leg',c:'red'},{t:'Soleus target',c:'amber'}], note:'Same slow descent but keep knee slightly bent throughout. Targets soleus (deeper calf) which sustains more load in extended hiking than gastrocnemius.' },
+  { id:'thu_tib',    name:'Tibialis Raises (loaded)',          targetSets:3, targetReps:20, equip:'5-10 lb plate pressed against shins',        chips:[{t:'3 sets',c:'red'},{t:'20 reps',c:'red'},{t:'Loaded version',c:'amber'}], note:'Back against wall, feet 12" out. Hold plate against shins while lifting toes. Hold 1 sec at top. Prevents shin fatigue and foot drag on trail. Do not skip.' },
+];
+
+// Day definitions — week starts Monday
+function getDayDef(wk) {
+  const w = WEEK_META[wk];
+  const sunNote = wk >= 10
+    ? `Back-to-back hike day — ${w.sunMi} miles target · same pack weight as Saturday\nLegs are already tired — this is the point.\nFocus: efficiency of movement, not speed. Time on feet is the variable.`
+    : `Recovery walk — 45-60 min · Zone 1-2 · 100-122 bpm\nLegs-loose effort only. First back-to-back hike starts week 10.`;
+  return [
+    { id:'mon', label:'Mon', type:'gym', title:'Lower Body A', sections:[
+      { label:'Warm-Up', pill:'sp-green', exercises: WARMUP },
+      { label:'Main Work', pill:'sp-blue', exercises: MON_EXERCISES },
+    ]},
+    { id:'tue', label:'Tue', type:'walk',
+      title:'Zone 2 Walk · 60 min · Hilly Terrain',
+      note:`Lower-carb day · 150g carbs / 215g protein / 70g fat\nHR target: 122-144 bpm. Find hilly terrain.\n${wk >= 13 ? 'Carry 10-15 lb daypack from week 13 onward.' : 'Build to carrying daypack in week 13.'}\n4+ miles target.` },
+    { id:'wed', label:'Wed', type:'gym', title:'Upper Body + Core', sections:[
+      { label:'Warm-Up', pill:'sp-green', exercises: WARMUP },
+      { label:'Upper Body + Core', pill:'sp-blue', exercises: WED_EXERCISES },
+    ]},
+    { id:'thu', label:'Thu', type:'gym', title:'Lower Body B + Stairs + Lower Leg', sections:[
+      { label:'Warm-Up', pill:'sp-green', exercises: WARMUP },
+      { label:'Lower Body B', pill:'sp-blue', exercises: THU_MAIN },
+      { label:`Stair Climber · ${w.stairTime} min · ${w.vest}`, pill:'sp-purple', exercises:[
+        { id:'thu_stair', name:`Stair Climber · ${w.stairTime} min`, targetSets:1, targetReps:1, timedSeconds: w.stairTime * 60, equip:w.vest, chips:[{t:`${w.stairTime} min`,c:'purple'},{t:w.vest,c:'amber'},{t:'Heel not toe',c:'gray'}], note:`Upright posture — do not lean on rails. Push through heel not toe. Hands off rails as much as possible. On fatigued legs = trail conditioning.\n${w.deload ? 'DELOAD: 50 min, no vest.' : ''}` }
+      ]},
+      { label:'Lower Leg Block', pill:'sp-red', exercises: THU_LOWER_LEG },
+    ]},
+    { id:'fri', label:'Fri', type:'walk',
+      title:'Easy Pre-Hike Flush · 45 min',
+      note:`Lower-carb day. KEEP THIS EASY.\nZone 1 only: 108-122 bpm. Flat terrain. 3-3.5 mph.\nProtect Saturday legs. No hard effort.\n${w.deload ? 'DELOAD WEEK: Even easier than usual.' : 'If above 85°F — shorten to 30 min.'}` },
+    { id:'sat', label:'Sat', type:'hike',
+      title:`Trail Hike · ${w.satMi} miles · ${w.packLbs} lb pack`,
+      note:`PRIMARY HIKE — most important session of the week.\n\nDistance: ${w.satMi} miles · Pack: ${w.packLbs} lbs\n\nON-TRAIL FUELING (start at mile 1, not when hungry):\n· 200-300 cal/hr throughout the hike\n· 60g+ carbs/hr during sustained effort\n· Electrolytes every hour — sodium is critical, water alone is not enough\n· Test all foods during Phase 3 training hikes — never introduce a new food on the Colorado trail\n\nTrekking poles on every descent — required in Phase 3.\nIf a hot spot forms, stop and address it immediately — do not push through.\nLog on Garmin Fenix: HR, distance, elevation.\n${w.deload ? '\nDELOAD WEEK — shorter distance, lighter pack.' : ''}` },
+    { id:'sun', label:'Sun', type: wk >= 10 ? 'hike' : 'walk',
+      title: wk >= 10 ? `Back-to-Back Hike · ${w.sunMi} miles` : 'Recovery Walk · 45-60 min',
+      note: sunNote },
+  ];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+const STORE_KEY = 'p3tracker_v1';
+let S = {};
+let activeWeek = 9;
+let activeDay = 'mon';
+let sessionTimerRunning = false;
+let sessionSeconds = 0;
+let sessionInterval = null;
+let restInterval = null;
+let restRemaining = 0;
+let restTotal = 90;
+let restPaused = false;
+let currentRestPreset = 90;
+
+function load() {
+  try { S = JSON.parse(localStorage.getItem(STORE_KEY) || '{}'); } catch(e) { S = {}; }
+  activeWeek = parseInt(S._week || 9);
+  activeDay = S._day || 'mon';
+}
+function save() {
+  S._week = activeWeek; S._day = activeDay;
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e) {}
+}
+
+function wdKey(wk, day) { return `w${wk}_${day}`; }
+function exKey(wk, day, exId) { return `w${wk}_${day}_${exId}`; }
+function prevWtKey(wk, day, exId) {
+  // Look for weight used in same exercise last week
+  const prevWk = wk - 1;
+  if (prevWk < 9) return null;
+  const k = `w${prevWk}_${day}_${exId}_lastweight`;
+  return S[k] || null;
+}
+
+// Get or init exercise session data
+function getExData(wk, day, exId, defaultSets, defaultReps) {
+  const k = exKey(wk, day, exId);
+  if (!S[k]) {
+    S[k] = { sets: Array.from({length: defaultSets}, () => ({reps: defaultReps, weight: '', done: false})), notes: '' };
+  }
+  return S[k];
+}
+
+function setExData(wk, day, exId, data) {
+  const k = exKey(wk, day, exId);
+  S[k] = data;
+  // Track last weight used for this exercise (for previous week display)
+  const doneSets = data.sets.filter(s => s.done && s.weight);
+  if (doneSets.length > 0) {
+    S[`${k}_lastweight`] = doneSets[doneSets.length - 1].weight;
+  }
+  save();
+}
+
+// Count completed exercises for progress bar
+function countCompleted(wk, day) {
+  const days = getDayDef(wk);
+  const dayDef = days.find(d => d.id === day);
+  if (!dayDef) return { done: 0, total: 0 };
+  if (dayDef.type !== 'gym') {
+    return { done: S[wdKey(wk,day)+'_complete'] ? 1 : 0, total: 1 };
+  }
+  const allEx = dayDef.sections.flatMap(s => s.exercises);
+  let done = 0, total = allEx.length;
+  allEx.forEach(ex => {
+    const data = S[exKey(wk, day, ex.id)];
+    if (data && data.sets.every(s => s.done)) done++;
+  });
+  // Check custom exercises
+  const customs = S[wdKey(wk,day)+'_custom'] || [];
+  total += customs.length;
+  customs.forEach(cx => {
+    const data = S[exKey(wk, day, cx.id)];
+    if (data && data.sets.every(s => s.done)) done++;
+  });
+  return { done, total };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION TIMER
+// ═══════════════════════════════════════════════════════════════
+function toggleSessionTimer() {
+  if (sessionTimerRunning) {
+    clearInterval(sessionInterval);
+    sessionTimerRunning = false;
+    document.getElementById('sessionClock').className = 'session-clock';
+  } else {
+    sessionTimerRunning = true;
+    document.getElementById('sessionClock').className = 'session-clock running';
+    sessionInterval = setInterval(() => {
+      sessionSeconds++;
+      const m = Math.floor(sessionSeconds / 60);
+      const s = sessionSeconds % 60;
+      document.getElementById('sessionTimeDisplay').textContent = `${m}:${String(s).padStart(2,'0')}`;
+    }, 1000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// REST TIMER
+// ═══════════════════════════════════════════════════════════════
+function openRest() {
+  restRemaining = currentRestPreset;
+  restTotal = currentRestPreset;
+  restPaused = false;
+  document.getElementById('restOverlay').className = 'rest-overlay open';
+  document.getElementById('restPauseBtn').textContent = 'Pause';
+  updateRestDisplay();
+  startRestCountdown();
+}
+
+function setRestPreset(secs) {
+  currentRestPreset = secs;
+  restRemaining = secs; restTotal = secs;
+  if (restInterval) clearInterval(restInterval);
+  document.querySelectorAll('.rest-preset').forEach(p => p.classList.remove('active'));
+  const presets = [60, 90, 120, 180];
+  document.querySelectorAll('.rest-preset').forEach((p, i) => {
+    if (presets[i] === secs) p.classList.add('active');
+  });
+  updateRestDisplay();
+  startRestCountdown();
+}
+
+function startRestCountdown() {
+  if (restInterval) clearInterval(restInterval);
+  restInterval = setInterval(() => {
+    if (restPaused) return;
+    restRemaining--;
+    updateRestDisplay();
+    if (restRemaining <= 0) {
+      clearInterval(restInterval);
+      document.getElementById('restDisplay').className = 'rest-time done';
+      document.getElementById('restDisplay').textContent = 'GO!';
+      setTimeout(closeRest, 1200);
+    }
+  }, 1000);
+}
+
+function updateRestDisplay() {
+  const m = Math.floor(restRemaining / 60);
+  const s = restRemaining % 60;
+  const disp = document.getElementById('restDisplay');
+  const bar = document.getElementById('restBar');
+  disp.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const pct = (restRemaining / restTotal) * 100;
+  bar.style.width = pct + '%';
+  if (restRemaining <= 20) {
+    disp.className = 'rest-time urgent';
+    bar.className = 'rest-bar urgent';
+  } else {
+    disp.className = 'rest-time';
+    bar.className = 'rest-bar';
+  }
+}
+
+function toggleRestPause() {
+  restPaused = !restPaused;
+  document.getElementById('restPauseBtn').textContent = restPaused ? 'Resume' : 'Pause';
+}
+
+function closeRest() {
+  if (restInterval) clearInterval(restInterval);
+  document.getElementById('restOverlay').className = 'rest-overlay';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INLINE COUNTDOWN TIMERS (for timed exercises)
+// ═══════════════════════════════════════════════════════════════
+const activeCountdowns = {}; // { timerId: { interval, remaining, total } }
+
+function resetCountdown(exId, setIdx, totalSecs) {
+  const timerId = `cd_${exId}_${setIdx}`;
+  // Stop any running countdown
+  if (activeCountdowns[timerId]) {
+    clearInterval(activeCountdowns[timerId].interval);
+    delete activeCountdowns[timerId];
+  }
+  // Re-render the card to restore fresh timer state (also un-does auto-complete if timer ran out)
+  const ex = findEx(exId);
+  if (!ex) return;
+  // If the set was auto-completed by the timer, un-complete it
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  if (data.sets[setIdx].done) {
+    data.sets[setIdx].done = false;
+    setExData(activeWeek, activeDay, exId, data);
+  }
+  const card = document.getElementById('card_' + exId);
+  if (card) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderExCard(ex, activeWeek, activeDay);
+    card.replaceWith(tmp.firstElementChild);
+  }
+  renderProgress();
+}
+
+function startCountdown(exId, setIdx, totalSecs) {
+  const timerId = `cd_${exId}_${setIdx}`;
+  const btn = document.getElementById(timerId);
+  const fill = document.getElementById(timerId + '_fill');
+  const labelEl = document.getElementById(timerId + '_label');
+  if (!btn || !fill || !labelEl) return;
+
+  // If already running, pause it
+  if (activeCountdowns[timerId] && activeCountdowns[timerId].running) {
+    clearInterval(activeCountdowns[timerId].interval);
+    activeCountdowns[timerId].running = false;
+    btn.className = 'countdown-btn';
+    const rem = activeCountdowns[timerId].remaining;
+    const m = Math.floor(rem/60), s = rem%60;
+    labelEl.textContent = m > 0 ? `${m}:${String(s).padStart(2,'0')} (paused)` : `${rem}s (paused)`;
+    return;
+  }
+
+  // Initialize or resume
+  if (!activeCountdowns[timerId]) {
+    activeCountdowns[timerId] = { remaining: totalSecs, total: totalSecs, running: false };
+  }
+
+  const cd = activeCountdowns[timerId];
+  cd.running = true;
+  btn.className = 'countdown-btn running';
+
+  cd.interval = setInterval(() => {
+    cd.remaining--;
+    const m = Math.floor(cd.remaining/60), s = cd.remaining%60;
+    const label = m > 0 ? `${m}:${String(s).padStart(2,'0')}` : `${cd.remaining}s`;
+    if (labelEl) labelEl.textContent = label;
+
+    const pct = (cd.remaining / cd.total) * 100;
+    if (fill) {
+      fill.style.width = pct + '%';
+      fill.className = 'countdown-prog-fill' + (cd.remaining <= 10 ? ' urgent' : '');
+    }
+
+    if (cd.remaining <= 0) {
+      clearInterval(cd.interval);
+      cd.running = false;
+      delete activeCountdowns[timerId];
+      // Auto-mark set complete and re-render the card cleanly
+      const ex2 = findEx(exId);
+      if (ex2) {
+        const data2 = getExData(activeWeek, activeDay, exId, ex2.targetSets, ex2.targetReps);
+        data2.sets[setIdx].done = true;
+        setExData(activeWeek, activeDay, exId, data2);
+        const card2 = document.getElementById('card_' + exId);
+        if (card2) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = renderExCard(ex2, activeWeek, activeDay);
+          card2.replaceWith(tmp.firstElementChild);
+        }
+        renderProgress();
+        renderDayTabs();
+      }
+    }
+  }, 1000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════════════
+function renderWeekPills() {
+  document.getElementById('weekPills').innerHTML = Object.entries(WEEK_META).map(([wk, m]) =>
+    `<div class="wpill ${parseInt(wk)===activeWeek?'active':''} ${m.deload?'deload':''}" onclick="switchWeek(${wk})">${m.label}</div>`
+  ).join('');
+}
+
+function renderDayTabs() {
+  const days = getDayDef(activeWeek);
+  document.getElementById('dayTabs').innerHTML = days.map(d => {
+    const {done, total} = countCompleted(activeWeek, d.id);
+    const isDone = done === total && total > 0;
+    return `<div class="dtab ${d.id===activeDay?'active':''} ${d.type==='gym'?'gym':''} ${isDone&&d.id!==activeDay?'done-day':''}" onclick="switchDay('${d.id}')">${d.label}</div>`;
+  }).join('');
+}
+
+function renderProgress() {
+  const {done, total} = countCompleted(activeWeek, activeDay);
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+  document.getElementById('sessProgFill').style.width = pct + '%';
+}
+
+function renderBody() {
+  const days = getDayDef(activeWeek);
+  const day = days.find(d => d.id === activeDay);
+  const w = WEEK_META[activeWeek];
+  const el = document.getElementById('scrollBody');
+
+  if (day.type !== 'gym') {
+    renderCardioDay(el, day, w);
+    return;
+  }
+  renderGymDay(el, day, w);
+}
+
+function renderCardioDay(el, day, w) {
+  const isDone = !!S[wdKey(activeWeek, activeDay)+'_complete'];
+  const emoji = day.type === 'hike' ? '🥾' : day.id === 'fri' ? '🚶' : '🚶';
+  el.innerHTML = `
+    ${renderMacroCard(activeWeek, activeDay)}
+    ${renderContentProgress(activeWeek, activeDay)}
+    ${renderWeekSynopsis(activeWeek)}
+    ${w.deload ? '<div class="banner banner-amber"><strong>Deload Week</strong>Reduce all effort 20-25%. Hike shorter distance, lighter pack. Mandatory for tissue adaptation.</div>' : ''}
+    <div class="cardio-day-card">
+      <div class="cardio-day-title">${day.title}</div>
+      <div class="cardio-detail">${day.note}</div>
+    </div>
+    <div class="cardio-tap-done ${isDone?'done':''}" onclick="toggleCardioComplete()">
+      <div style="font-size:26px;margin-bottom:6px">${isDone?'✅':emoji}</div>
+      <div class="cardio-tap-txt">${isDone?'Complete — great work!':'Tap when done'}</div>
+    </div>`;
+}
+
+function renderGymDay(el, day, w) {
+  const {done, total} = countCompleted(activeWeek, activeDay);
+  let html = '';
+
+  // Macro card + progress bar at top
+  html += renderMacroCard(activeWeek, activeDay);
+  html += renderContentProgress(activeWeek, activeDay);
+  html += renderWeekSynopsis(activeWeek);
+
+  if (w.deload) html += `<div class="banner banner-amber"><strong>Deload Week</strong>Same exercises, same reps — reduce all weights 20-25%. This is how your body consolidates 4 weeks of adaptation.</div>`;
+
+  html += `<div class="banner banner-green"><strong>MCL Warm-Up First</strong>Clamshells → TKEs → Glute Bridges → Hip Flexor Stretch → Tibialis Raises. Every session, every week. Non-negotiable.</div>`;
+
+  // Sections
+  day.sections.forEach(sec => {
+    html += `<div class="section-hdr">
+      <span class="section-pill ${sec.pill}">${sec.label}</span>
+    </div>`;
+    sec.exercises.forEach(ex => {
+      html += renderExCard(ex, activeWeek, activeDay);
+    });
+  });
+
+  // Custom exercises
+  const customs = S[wdKey(activeWeek, activeDay)+'_custom'] || [];
+  if (customs.length > 0) {
+    html += `<div class="section-hdr"><span class="section-pill sp-teal">Custom Exercises</span></div>`;
+    customs.forEach(cx => { html += renderExCard(cx, activeWeek, activeDay, true); });
+  }
+
+  html += `<button class="add-ex-btn" onclick="openModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Add Custom Exercise
+  </button>`;
+
+  if (done === total && total > 0) {
+    html += `<div class="done-banner"><h3>Session Complete</h3><p>Log it in Hevy &middot; post-workout protein within 45 min &middot; rest timer is your friend between sets.</p></div>`;
+  }
+
+  el.innerHTML = html;
+}
+
+function renderExCard(ex, wk, day, isCustom = false) {
+  const data = getExData(wk, day, ex.id, ex.targetSets, ex.targetReps);
+  const allDone = data.sets.length > 0 && data.sets.every(s => s.done);
+  const prevWt = prevWtKey(wk, day, ex.id);
+
+  let chipsHtml = (ex.chips || []).map(c => `<span class="chip chip-${c.c}">${c.t}</span>`).join('');
+
+  let html = `<div class="ex-card ${allDone?'complete':''}" id="card_${ex.id}">
+    <div class="ex-header">
+      <div class="ex-top">
+        <div class="ex-check" onclick="toggleAllSets('${ex.id}')" title="${allDone?'Unmark all sets':'Mark all sets done'}">
+          <svg class="ex-chk-icon" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#030f08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="ex-info">
+          <div class="ex-name">${ex.name}${isCustom?' <span style="font-size:10px;color:var(--teal);font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;">CUSTOM</span>':''}</div>
+          <div class="ex-chips">${chipsHtml}</div>
+          ${prevWt ? `<div class="prev-weight">Last week: ${prevWt} lbs</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+
+  // Set logger
+  const isTimed = !!ex.timedSeconds;
+  html += `<div class="set-logger" id="logger_${ex.id}">`;
+
+  if (isTimed) {
+    // Timed exercise — countdown rows with start + reset + checkmark
+    html += `<div style="padding:0 6px 6px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.06em;text-transform:uppercase;">Tap to start &middot; tap again to pause &middot; reset to restart</div>`;
+    data.sets.forEach((set, i) => {
+      const timerId = `cd_${ex.id}_${i}`;
+      const totalSec = ex.timedSeconds;
+      const m = Math.floor(totalSec/60), s = totalSec%60;
+      const label = m > 0 ? `${m}:${String(s).padStart(2,'0')}` : `${totalSec}s`;
+      html += `<div class="countdown-row ${set.done?'done-row':''}" id="setrow_${ex.id}_${i}">
+        <div class="countdown-set-num">${i+1}</div>
+        <button class="countdown-btn ${set.done?'done-timer':''}" id="${timerId}" onclick="startCountdown('${ex.id}',${i},${ex.timedSeconds})">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M6.5 4v3l2 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span id="${timerId}_label">${set.done ? 'Done' : label}</span>
+        </button>
+        <div class="countdown-progress" id="${timerId}_bar" style="${set.done?'display:none':''}">
+          <div class="countdown-prog-fill ${set.done?'done-fill':''}" id="${timerId}_fill" style="width:${set.done?'100%':'0%'}"></div>
+        </div>
+        <button class="countdown-reset-btn" onclick="resetCountdown('${ex.id}',${i},${ex.timedSeconds})" title="Reset timer">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5A4.5 4.5 0 106.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 2.5V6.5H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="set-done-btn ${set.done?'done':''}" onclick="toggleSetDone('${ex.id}',${i})">
+          <svg class="set-done-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="${set.done?'#030f08':'#93c5fd'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>`;
+    });
+  } else {
+    // Standard weight/reps exercise
+    html += `<div class="set-logger-hdr">
+      <div class="sl-hdr-cell">Set</div>
+      ${ex.noWeight ? '' : '<div class="sl-hdr-cell">Weight (lbs)</div>'}
+      <div class="sl-hdr-cell">Reps</div>
+      <div class="sl-hdr-cell"></div>
+      <div class="sl-hdr-cell"></div>
+    </div>`;
+    data.sets.forEach((set, i) => {
+      const rowClass = ex.noWeight ? 'set-row-noweight' : 'set-row';
+      html += `<div class="${rowClass} ${set.done?'done-row':''}" id="setrow_${ex.id}_${i}">
+        <div class="set-num">${i+1}</div>
+        ${ex.noWeight ? '' : `<input class="set-input" type="number" inputmode="decimal" placeholder="lbs" value="${set.weight||''}"
+          onchange="updateSetWeight('${ex.id}',${i},this.value)" oninput="updateSetWeight('${ex.id}',${i},this.value)">`}
+        <div class="set-reps-static">${ex.targetReps || '—'}</div>
+        <div class="set-rest-btn" onclick="openRest()" title="Start rest timer">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 4.5v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="set-done-btn ${set.done?'done':''}" onclick="toggleSetDone('${ex.id}',${i})">
+          <svg class="set-done-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="${set.done?'#030f08':'#93c5fd'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>`;
+    });
+  }
+
+  html += `<div class="add-set-btn" onclick="addSet('${ex.id}')">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/></svg>
+    Add set
+  </div>`;
+  html += `</div>`; // end set-logger
+
+  // Notes
+  html += `<div class="notes-section">
+    <textarea class="notes-input" placeholder="Notes — form cues, weight felt, how you felt..." rows="2"
+      onchange="updateNotes('${ex.id}',this.value)" oninput="updateNotes('${ex.id}',this.value)">${data.notes||''}</textarea>
+  </div>`;
+
+  if (ex.note) {
+    html += `<div class="ex-note-text">${ex.note}</div>`;
+  }
+
+  html += `</div>`; // end ex-card
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACTIONS
+// ═══════════════════════════════════════════════════════════════
+function toggleExExpand(exId) {
+  const logger = document.getElementById('logger_' + exId);
+  if (logger) {
+    logger.style.display = logger.style.display === 'none' ? '' : 'none';
+  }
+}
+
+function toggleAllSets(exId) {
+  const ex = findEx(exId);
+  if (!ex) return;
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  const allDone = data.sets.every(s => s.done);
+  data.sets.forEach(s => s.done = !allDone);
+  setExData(activeWeek, activeDay, exId, data);
+  const card = document.getElementById('card_' + exId);
+  if (card) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = renderExCard(ex, activeWeek, activeDay);
+    card.replaceWith(tmp.firstElementChild);
+  }
+  try { if (!allDone) navigator.vibrate(20); } catch(e) {}
+  renderProgress();
+  renderDayTabs();
+  const pw = document.querySelector('.content-progress-wrap');
+  if (pw) pw.outerHTML = renderContentProgress(activeWeek, activeDay);
+}
+
+function updateSetWeight(exId, setIdx, val) {
+  const ex = findEx(exId);
+  if (!ex) return;
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  data.sets[setIdx].weight = val;
+  setExData(activeWeek, activeDay, exId, data);
+}
+
+function updateSetReps(exId, setIdx, val) {
+  const ex = findEx(exId);
+  if (!ex) return;
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  data.sets[setIdx].reps = val;
+  setExData(activeWeek, activeDay, exId, data);
+}
+
+function toggleSetDone(exId, setIdx) {
+  const ex = findEx(exId);
+  if (!ex) return;
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  data.sets[setIdx].done = !data.sets[setIdx].done;
+  setExData(activeWeek, activeDay, exId, data);
+
+  // Re-render the entire card so all row types (timed/noWeight/standard) stay correct
+  const card = document.getElementById('card_' + exId);
+  if (card) {
+    const newCardHtml = renderExCard(ex, activeWeek, activeDay);
+    const tmp = document.createElement('div');
+    tmp.innerHTML = newCardHtml;
+    card.replaceWith(tmp.firstElementChild);
+  }
+
+  try { if (data.sets[setIdx].done) navigator.vibrate(12); } catch(e) {}
+  renderProgress();
+  renderDayTabs();
+  // Update the inline progress bar without full re-render
+  const pw = document.querySelector('.content-progress-wrap');
+  if (pw) pw.outerHTML = renderContentProgress(activeWeek, activeDay);
+}
+
+function addSet(exId) {
+  const ex = findEx(exId);
+  if (!ex) return;
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  data.sets.push({ reps: ex.targetReps || 10, weight: '', done: false });
+  setExData(activeWeek, activeDay, exId, data);
+  renderAll();
+}
+
+function updateNotes(exId, val) {
+  const ex = findEx(exId);
+  if (!ex) return;
+  const data = getExData(activeWeek, activeDay, exId, ex.targetSets, ex.targetReps);
+  data.notes = val;
+  setExData(activeWeek, activeDay, exId, data);
+}
+
+function findEx(exId) {
+  const days = getDayDef(activeWeek);
+  const day = days.find(d => d.id === activeDay);
+  if (!day || !day.sections) return null;
+  for (const sec of day.sections) {
+    const found = sec.exercises.find(e => e.id === exId);
+    if (found) return found;
+  }
+  const customs = S[wdKey(activeWeek, activeDay)+'_custom'] || [];
+  return customs.find(c => c.id === exId) || null;
+}
+
+function toggleCardioComplete() {
+  const k = wdKey(activeWeek, activeDay) + '_complete';
+  S[k] = !S[k];
+  save();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CUSTOM EXERCISE
+// ═══════════════════════════════════════════════════════════════
+function openModal() {
+  document.getElementById('newExName').value = '';
+  document.getElementById('newExEquip').value = '';
+  document.getElementById('newExSets').value = 3;
+  document.getElementById('newExReps').value = 10;
+  document.getElementById('newExWeight').value = '';
+  document.getElementById('addModal').className = 'modal-overlay open';
+}
+
+function closeModal() {
+  document.getElementById('addModal').className = 'modal-overlay';
+}
+
+function saveNewEx() {
+  const name = document.getElementById('newExName').value.trim();
+  if (!name) return;
+  const sets = parseInt(document.getElementById('newExSets').value) || 3;
+  const reps = parseInt(document.getElementById('newExReps').value) || 10;
+  const weight = document.getElementById('newExWeight').value;
+  const equip = document.getElementById('newExEquip').value.trim();
+  const id = 'custom_' + Date.now();
+  const newEx = {
+    id, name, targetSets: sets, targetReps: reps, equip,
+    chips:[{t:`${sets} sets`,c:'gray'},{t:`${reps} reps`,c:'gray'}],
+    note: equip
+  };
+  const k = wdKey(activeWeek, activeDay) + '_custom';
+  if (!S[k]) S[k] = [];
+  S[k].push(newEx);
+  // Pre-fill weight if provided
+  if (weight) {
+    const exData = { sets: Array.from({length:sets},()=>({reps,weight,done:false})), notes:'' };
+    setExData(activeWeek, activeDay, id, exData);
+  }
+  save();
+  closeModal();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════════
+function switchWeek(wk) {
+  activeWeek = parseInt(wk);
+  save();
+  renderAll();
+  document.getElementById('scrollBody').scrollTop = 0;
+}
+
+function switchDay(id) {
+  activeDay = id;
+  save();
+  renderAll();
+  document.getElementById('scrollBody').scrollTop = 0;
+}
+
+function renderAll() {
+  renderWeekPills();
+  renderDayTabs();
+  renderProgress();
+  renderBody();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+load();
+renderAll();
+</script>
+</body>
+</html>
