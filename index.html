@@ -219,6 +219,23 @@ body {
 .banner-green { background: var(--accent-dim); border: 1px solid #0f2018; color: var(--accent); }
 .banner-purple { background: var(--purple-dim); border: 1px solid #1a1230; color: var(--purple); }
 
+/* SESSION TIME ESTIMATE BAR */
+.session-time-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--text-dim);
+  flex-wrap: wrap;
+}
+.session-time-bar strong { color: var(--teal); font-family: 'Barlow Condensed', sans-serif; font-size: 15px; font-weight: 700; }
+.session-time-note { font-size: 11px; color: var(--muted); margin-left: auto; }
+
 /* NUTRITION STRIP */
 .nut-strip { display: flex; gap: 6px; margin-bottom: 14px; }
 .nut-card { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 5px; text-align: center; }
@@ -1200,36 +1217,40 @@ const WARMUP = [
 ];
 
 // Monday — Lower Body A
+// Gym flow: squat rack (hip thrust) → DB rack (goblet squat) → machine/GHD (nordic) → box area (step-up + step-down)
 const MON_EXERCISES = [
-  { id:'mon_goblet', name:'Goblet Squat',              targetSets:3, targetReps:10, equip:'Dumbbell held at chest', chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'Knee tracking primer',c:'green'}], note:'Feet shoulder-width, toes out 15-30 degrees. Hold dumbbell vertically at chest. Sit back and down, knees tracking over 2nd toe. Descend to parallel. Drive through heels, squeeze glutes at top. Knee-over-toe tracking is non-negotiable for MCL. Reduced from 4×10 (Phase 2) to 3×10 — Thursday now covers quad volume with Lunges and Split Squat.' },
-  { id:'mon_stepup', name:'Weighted Step-Ups',        targetSets:4, targetReps:15, equip:'Heavy DBs · 24" box target · 25-35 lbs each hand', chips:[{t:'4 sets',c:'blue'},{t:'15 each leg',c:'blue'},{t:'24" box',c:'amber'}], note:'Drive through heel ONLY. Controlled 3-sec descent. This is the most hiking-specific exercise in the program — treat it that way.' },
-  { id:'mon_thrust', name:'Hip Thrust',               targetSets:4, targetReps:12, equip:'Heavy barbell · 135-185 lbs target', chips:[{t:'4 sets',c:'blue'},{t:'12 reps',c:'blue'},{t:'2 sec pause at top',c:'amber'}], note:'Bench behind you, bar across hips. Squeeze glutes hard. 2-second hold at top. Phase 3 target: 135-185 lbs.' },
-  { id:'mon_nordic', name:'Nordic Hamstring Curl', noWeight:true, targetSets:3, targetReps:7, equip:'Partner to anchor feet or GHD machine', chips:[{t:'3 sets',c:'blue'},{t:'6-8 reps',c:'blue'},{t:'KEY — downhill protection',c:'red'}], note:'Lower torso toward floor as slowly as possible. Catch with hands when you can no longer resist. Push back up with arms. The descent IS the exercise. Start with 4-5 reps if new to this.' },
-  { id:'mon_stepdn', name:'Eccentric Step-Down (loaded)', targetSets:3, targetReps:10, equip:'10-15 lb DB at chest · 8-12" box', chips:[{t:'3 sets',c:'blue'},{t:'10 each leg',c:'blue'},{t:'3-4 sec descent',c:'amber'}], note:'Stand at edge of box, toes forward. Lower free leg over 3-4 seconds. Tap heel, drive back up through standing leg. Slow descent = the entire point.' },
+  { id:'mon_thrust', name:'Hip Thrust',               targetSets:4, targetReps:12, equip:'Heavy barbell · 135-185 lbs target · squat rack area', chips:[{t:'4 sets',c:'blue'},{t:'12 reps',c:'blue'},{t:'2 sec pause at top',c:'amber'}], note:'Squat rack area — set up bench perpendicular to rack. Bar across hips with pad. Squeeze glutes hard. 2-second hold at top. Phase 3 target: 135-185 lbs. Done first while you are freshest for the heaviest load of the day.' },
+  { id:'mon_goblet', name:'Goblet Squat',              targetSets:3, targetReps:10, equip:'Dumbbell held at chest · DB rack', chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'Knee tracking primer',c:'green'}], note:'DB rack. Feet shoulder-width, toes out 15-30 degrees. Hold dumbbell vertically at chest. Sit back and down, knees tracking over 2nd toe. Descend to parallel. Drive through heels, squeeze glutes at top. Knee-over-toe tracking is non-negotiable for MCL.' },
+  { id:'mon_nordic', name:'Nordic Hamstring Curl', noWeight:true, targetSets:3, targetReps:7, equip:'GHD machine or anchor feet under a bench', chips:[{t:'3 sets',c:'blue'},{t:'6-8 reps',c:'blue'},{t:'KEY — downhill protection',c:'red'}], note:'Machine area — GHD preferred, or anchor feet under a heavy DB / bench. Lower torso toward floor as slowly as possible. Catch with hands when you can no longer resist. Push back up with arms. The descent IS the exercise. Start with 4-5 reps if new to this. Directly trains the hamstring brake that prevents knee blow-out on steep trail descents.' },
+  { id:'mon_stepup', name:'Weighted Step-Ups',        targetSets:4, targetReps:15, equip:'Heavy DBs · 24" box · 25-35 lbs each hand', chips:[{t:'4 sets',c:'blue'},{t:'15 each leg',c:'blue'},{t:'24" box',c:'amber'}], note:'Box area — same box you will use for step-downs immediately after. Drive through heel ONLY. Controlled 3-sec descent. This is the most hiking-specific exercise in the program — treat it that way.' },
+  { id:'mon_stepdn', name:'Eccentric Step-Down (loaded)', targetSets:3, targetReps:10, equip:'10-15 lb DB at chest · same 24" box', chips:[{t:'3 sets',c:'blue'},{t:'10 each leg',c:'blue'},{t:'3-4 sec descent',c:'amber'}], note:'Same box as step-ups — do not move. Stand at edge, toes forward. Lower free leg over 3-4 seconds. Tap heel, drive back up through standing leg. Slow descent = the entire point. Paired with step-ups to finish all box work in one location.' },
 ];
 
 // Wednesday carries — alternated by week parity; separate IDs = separate localStorage weight keys
 const WED_FARMER = { id:'wed_farmer', name:'Farmer\'s Carry', targetSets:3, targetReps:40, equip:'Heavy DBs or KBs · at sides (both hands)', chips:[{t:'3 sets',c:'blue'},{t:'40 yards',c:'blue'},{t:'Odd weeks',c:'amber'}], note:'Heavy DBs or KBs at your sides. Walk 20 yards out, turn, walk back. Upright posture — do not lean or shrug. This is a full-body loading exercise that trains grip, trap, and core endurance. Direct carry-over to trekking-pole hiking with a loaded pack.' };
 const WED_SUIT   = { id:'wed_suit',   name:'Suitcase Carry',  targetSets:3, targetReps:40, equip:'Single heavy DB or KB · one side at a time', chips:[{t:'3 sets',c:'blue'},{t:'40 yards each side',c:'blue'},{t:'Even weeks',c:'amber'}], note:'One heavy DB or KB in one hand. Walk 40 yards, switch hands, walk back. Resist lateral lean — keep torso completely upright against the offset load. Trains unilateral hip and oblique stability. Simulates off-camber trail with a loaded pack pulling you sideways.' };
 
-// Wednesday — Upper Body + Core (base; carry injected dynamically in getDayDef)
+// Wednesday — Upper Body + Core (base; carry + eccentric LP injected in getDayDef)
+// Order: bench press area → machine → DB aisle (carry) → floor room (core cluster)
 const WED_EXERCISES_BASE = [
-  { id:'wed_row',    name:'Dumbbell Row',             targetSets:4, targetReps:12, equip:'Heavy DBs · challenging by rep 10-11', chips:[{t:'4 sets',c:'blue'},{t:'12 each arm',c:'blue'},{t:'Heavy — Phase 3',c:'amber'}], note:'Back flat and parallel to floor. Lead with elbow not hand. Zero torso rotation. Full arm extension at bottom.' },
   { id:'wed_bench',  name:'Dumbbell Bench Press',     targetSets:4, targetReps:10, equip:'Dumbbells · challenging by rep 8-9', chips:[{t:'4 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'Pole endurance',c:'amber'}], note:'Elbows at 45 degrees — not flared to 90. Press to full extension. Lower to full chest stretch. Shoulder blades pinched on bench throughout. Every trekking pole plant on a descent transfers load through shoulder, chest, and triceps — over 7 days this is tens of thousands of push contractions.' },
-  { id:'wed_pallof', name:'Pallof Press — Walking',   noWeight:true, targetSets:3, targetReps:10, equip:'Resistance band or cable machine', chips:[{t:'3 sets',c:'blue'},{t:'10 steps each dir.',c:'blue'},{t:'Anti-rotation',c:'purple'}], note:'Press band out at belly-button height, then walk 5 steps sideways while maintaining the press. Walk back. Anti-rotation under dynamic conditions — more trail-specific than static version.' },
-  { id:'wed_twist',  name:'Russian Twist with Press', targetSets:3, targetReps:15, equip:'10-15 lb plate or medicine ball', chips:[{t:'3 sets',c:'blue'},{t:'15 each side',c:'blue'},{t:'Monroe variation',c:'purple'}], note:'Heels slightly off floor. Rotate left, tap plate, PRESS plate away from body, pull back, rotate right. The press-out trains trekking pole shoulder stability simultaneously.' },
-  { id:'wed_dead',   name:'Dead Bug',                 noWeight:true, targetSets:3, targetReps:12, equip:'Bodyweight (optional: 5 lb DB in extending arm)', chips:[{t:'3 sets',c:'blue'},{t:'12 each side (slow)',c:'blue'},{t:'Core anti-extension',c:'purple'}], note:'Lower back GLUED to floor the entire time — this is the only rule that matters. 3 sec down, 1 sec pause, 3 sec return. Optional: hold 5 lb DB in extending arm.' },
-  { id:'wed_plank',  name:'Plank',                   targetSets:3, targetReps:1, timedSeconds:60, equip:'Bodyweight', chips:[{t:'3 sets',c:'blue'},{t:'60 sec',c:'amber'},{t:'Core endurance',c:'purple'}], note:'Squeeze glutes and abs. Elbows under shoulders. Stop when form breaks. 45-sec perfect > 60-sec sloppy.' },
+  { id:'wed_row',    name:'Dumbbell Row',             targetSets:4, targetReps:12, equip:'Heavy DBs · challenging by rep 10-11', chips:[{t:'4 sets',c:'blue'},{t:'12 each arm',c:'blue'},{t:'Heavy — Phase 3',c:'amber'}], note:'Back flat and parallel to floor. Lead with elbow not hand. Zero torso rotation. Full arm extension at bottom. Use the same bench from DB Bench Press — grab DBs from the rack and go straight to this.' },
+  // Eccentric LP (machine) and carry (DB aisle) are injected here by getDayDef()
+  { id:'wed_pallof', name:'Pallof Press — Walking',   noWeight:true, targetSets:3, targetReps:10, equip:'Resistance band · anchored at mid height', chips:[{t:'3 sets',c:'blue'},{t:'10 steps each dir.',c:'blue'},{t:'Anti-rotation',c:'purple'}], note:'Floor room — use the band anchored at a door or anchor point at belly-button height. Press band out, walk 5 steps sideways while holding the press, walk back. Anti-rotation under dynamic conditions — more trail-specific than static version.' },
+  { id:'wed_twist',  name:'Russian Twist with Press', targetSets:3, targetReps:15, equip:'Medicine ball from floor room', chips:[{t:'3 sets',c:'blue'},{t:'15 each side',c:'blue'},{t:'Monroe variation',c:'purple'}], note:'Floor room — grab medicine ball. Heels slightly off floor. Rotate left, tap ball, PRESS ball away from body, pull back, rotate right. The press-out trains trekking pole shoulder stability simultaneously.' },
+  { id:'wed_dead',   name:'Dead Bug',                 noWeight:true, targetSets:3, targetReps:12, equip:'Bodyweight (optional: 5 lb DB in extending arm)', chips:[{t:'3 sets',c:'blue'},{t:'12 each side (slow)',c:'blue'},{t:'Core anti-extension',c:'purple'}], note:'Floor room. Lower back GLUED to floor the entire time — this is the only rule that matters. 3 sec down, 1 sec pause, 3 sec return. Optional: hold 5 lb DB in extending arm.' },
+  { id:'wed_plank',  name:'Plank',                   targetSets:3, targetReps:1, timedSeconds:60, equip:'Bodyweight', chips:[{t:'3 sets',c:'blue'},{t:'60 sec',c:'amber'},{t:'Core endurance',c:'purple'}], note:'Floor room — finish the core cluster here. Squeeze glutes and abs. Elbows under shoulders. Stop when form breaks. 45-sec perfect > 60-sec sloppy.' },
 ];
-const WED_DESCENT = { id:'wed_descent', name:'Incline Treadmill Descent', noWeight:true, targetSets:1, targetReps:1, timedSeconds:900, equip:'Treadmill · -8 to -10% grade', chips:[{t:'1 set',c:'blue'},{t:'15 min',c:'amber'},{t:'Downhill sim — only one in plan',c:'red'}], note:'Set treadmill to -8 to -10% negative grade. Walk at moderate pace (2.5-3.5 mph). Upright posture — do not hold handrails. This is an eccentric quad and knee stability exercise, not cardio. The stair climber only goes up. Colorado Trail descents regularly involve 2,000-4,000 ft of elevation loss in a single day — this is where knee injuries happen and where untrained hikers fail. Wednesday keeps legs fresh enough to absorb the eccentric load.' };
+const WED_SLOWLP = { id:'wed_slowlp', name:'Eccentric Leg Press (5-sec lower)', targetSets:3, targetReps:10, equip:'Leg press machine · 60-70% of your normal load', chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'5-sec descent',c:'amber'},{t:'Downhill sim',c:'red'}], note:'Load 60-70% of your normal leg press weight. Press to full extension. Lower the sled over exactly 5 seconds — count it out loud. The eccentric braking action of your quads on a mountain descent is what destroys untrained legs. The stair climber only goes up — this is your downhill training. Colorado Trail descents regularly drop 2,000-4,000 ft in a day. Wednesday timing keeps legs fresh enough to absorb the eccentric load without compromising Thursday.' };
 
 // Thursday — Lower Body B + Stair Climber + Lower Leg
+// Gym flow: floor room (band walk) → open aisle (lunges) → DB rack (SLRDL) → bench area (Bulgarian SS) → machine (leg press)
 const THU_MAIN = [
-  { id:'thu_lunge',  name:'Walking Lunges',           targetSets:3, targetReps:20, equip:'DBs or plate at chest · 20 yds back and forth', chips:[{t:'3 sets',c:'blue'},{t:'20 yds / set',c:'blue'},{t:'Monroe — NEW P3',c:'red'}], note:'Slow and controlled — absorb momentum with quads. Rear knee barely taps floor. This mimics the eccentric quad load of downhill hiking. Not a speed exercise.' },
-  { id:'thu_split',  name:'Bulgarian Split Squat',    targetSets:4, targetReps:12, equip:'Heavy DBs · rear foot on bench',     chips:[{t:'4 sets',c:'blue'},{t:'12 each leg',c:'blue'},{t:'2 sec pause at bottom',c:'amber'}], note:'Phase 3: 2-second pause at the bottom instead of 1. Weight should make rep 11-12 genuinely hard. Knee in line with ankle throughout.' },
-  { id:'thu_band',   name:'Lateral Band Walk',        targetSets:3, targetReps:20, noWeight:true, equip:'Light resistance band above knees', chips:[{t:'3 sets',c:'blue'},{t:'20 steps each dir',c:'blue'},{t:'Hip stability',c:'green'}], note:'Place band just above knees. Quarter-squat stance. Step laterally 20 steps right, then 20 steps left — that is one set. Keep tension on the band throughout. Builds hip abductor and IT band stability — critical for uneven Colorado Trail terrain and preventing knee drift on descents.' },
-  { id:'thu_slrdl',  name:'Single-Leg Romanian DL',   targetSets:3, targetReps:10, equip:'KB or DB · Monroe-specified',        chips:[{t:'3 sets',c:'blue'},{t:'10 each leg',c:'blue'},{t:'Monroe variation',c:'red'}], note:'Stand on one leg. Hinge forward to grab weight from floor. Squeeze glute and hamstring to return to single-leg stand. Core tight, spine neutral. All reps on one leg then switch.' },
-  { id:'thu_legpr',  name:'Leg Press',                targetSets:3, targetReps:10, equip:'Machine · Phase 3 heavy load',       chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'Full range',c:'amber'}], note:'Full range of motion every rep — do not reduce depth to add weight. Phase 3 loads should be heavier than your Phase 2 Thursday sets.' },
+  { id:'thu_band',   name:'Lateral Band Walk',        targetSets:3, targetReps:20, noWeight:true, equip:'Light resistance band · floor room', chips:[{t:'3 sets',c:'blue'},{t:'20 steps each dir',c:'blue'},{t:'Hip primer',c:'green'}], note:'Floor room — grab a light band. Place band just above knees. Quarter-squat stance. Step laterally 20 steps right, then 20 steps left — that is one set. Hip primer done first: activates abductors and IT band before the heavy compound work. Prevents knee cave throughout the rest of the session.' },
+  { id:'thu_lunge',  name:'Walking Lunges',           targetSets:3, targetReps:20, equip:'DBs or plate at chest · open aisle near DB rack', chips:[{t:'3 sets',c:'blue'},{t:'20 yds / set',c:'blue'},{t:'Monroe — NEW P3',c:'red'}], note:'Open space near the DB rack — pick up weight and use the aisle or open floor. Slow and controlled — absorb momentum with quads. Rear knee barely taps floor. This mimics the eccentric quad load of downhill hiking. Not a speed exercise.' },
+  { id:'thu_slrdl',  name:'Single-Leg Romanian DL',   targetSets:3, targetReps:10, equip:'KB or DB · DB rack',                chips:[{t:'3 sets',c:'blue'},{t:'10 each leg',c:'blue'},{t:'Monroe variation',c:'red'}], note:'DB rack — hip hinge between the quad-dominant lunges and Bulgarian split squat. Stand on one leg. Hinge forward, load drops toward floor. Squeeze glute and hamstring to return to single-leg stand. Core tight, spine neutral. All reps on one leg then switch. Hamstring focus gives quads a partial break.' },
+  { id:'thu_split',  name:'Bulgarian Split Squat',    targetSets:4, targetReps:12, equip:'Heavy DBs · rear foot on bench',     chips:[{t:'4 sets',c:'blue'},{t:'12 each leg',c:'blue'},{t:'2 sec pause at bottom',c:'amber'}], note:'Bench press area — use the bench. Phase 3: 2-second pause at the bottom instead of 1. Weight should make rep 11-12 genuinely hard. Knee in line with ankle throughout. Heaviest single-leg work of Thursday — done fresh after the hip hinge break.' },
+  { id:'thu_legpr',  name:'Leg Press',                targetSets:3, targetReps:10, equip:'Machine · Phase 3 heavy load',       chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'Full range',c:'amber'}], note:'Machine area — bilateral finisher after all the unilateral work. Full range of motion every rep — do not reduce depth to add weight. Phase 3 loads should be heavier than your Phase 2 Thursday sets.' },
 ];
 
 const THU_LOWER_LEG = [
@@ -1242,7 +1263,8 @@ const THU_LOWER_LEG = [
 function getDayDef(wk) {
   const w = WEEK_META[wk];
   const carry = (wk % 2 !== 0) ? WED_FARMER : WED_SUIT;
-  const wedExercises = [...WED_EXERCISES_BASE, carry, WED_DESCENT];
+  // Order: [bench, row] (bench area) → eccentric LP (machine) → carry (DB aisle) → [pallof, twist, dead, plank] (floor room)
+  const wedExercises = [...WED_EXERCISES_BASE.slice(0,2), WED_SLOWLP, carry, ...WED_EXERCISES_BASE.slice(2)];
   const sunNote = wk >= 10
     ? `Back-to-back hike day — ${w.sunMi} miles target · same pack weight as Saturday\nLegs are already tired — this is the point.\nFocus: efficiency of movement, not speed. Time on feet is the variable.`
     : `Recovery walk — 45-60 min · Zone 1-2 · 100-122 bpm\nLegs-loose effort only. First back-to-back hike starts week 10.`;
@@ -1593,6 +1615,32 @@ function renderCardioDay(el, day, w) {
     </div>`;
 }
 
+function estimateGymMins(sections) {
+  // Warmup exercises flow without rest. Main work: 90 sec rest (weighted), 45 sec (bodyweight).
+  // Set duration: timedSeconds exact; weighted reps × 4 sec; bodyweight reps × 2.5 sec.
+  // 2 min section-setup overhead per non-warmup section; 30 sec transition between exercises.
+  let sec = 0;
+  sections.forEach(section => {
+    const isWarmup = section.pill === 'sp-green';
+    if (!isWarmup) sec += 120; // equipment setup per main section
+    section.exercises.forEach((ex, i) => {
+      const sets = ex.targetSets || 1;
+      let setDur;
+      if (ex.timedSeconds) {
+        setDur = ex.timedSeconds;
+      } else if (ex.noWeight) {
+        setDur = Math.round((ex.targetReps || 10) * 2.5);
+      } else {
+        setDur = Math.round((ex.targetReps || 10) * 4);
+      }
+      const rest = isWarmup ? 0 : (ex.noWeight ? 45 : 90);
+      sec += sets * setDur + Math.max(0, sets - 1) * rest;
+      if (!isWarmup && i < section.exercises.length - 1) sec += 30; // transition between exercises
+    });
+  });
+  return Math.ceil(sec / 60);
+}
+
 function renderGymDay(el, day, w) {
   const {done, total} = countCompleted(activeWeek, activeDay);
   let html = '';
@@ -1601,6 +1649,13 @@ function renderGymDay(el, day, w) {
   html += renderMacroCard(activeWeek, activeDay);
   html += renderContentProgress(activeWeek, activeDay);
   html += renderWeekSynopsis(activeWeek);
+
+  const estMins = estimateGymMins(day.sections);
+  html += `<div class="session-time-bar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    <span>Estimated session time: <strong>~${estMins} min</strong></span>
+    <span class="session-time-note">includes warm-up · rest periods · transitions</span>
+  </div>`;
 
   if (w.deload) html += `<div class="banner banner-amber"><strong>Deload Week</strong>Same exercises, same reps — reduce all weights 20-25%. This is how your body consolidates 4 weeks of adaptation.</div>`;
 
