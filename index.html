@@ -1404,6 +1404,7 @@ function toggleSessionTimer() {
 // REST TIMER
 // ═══════════════════════════════════════════════════════════════
 function openRest() {
+  unlockAudio(); // user gesture — safe to create/resume AudioContext here
   restRemaining = currentRestPreset;
   restTotal = currentRestPreset;
   restPaused = false;
@@ -1471,34 +1472,46 @@ function closeRest() {
 
 // ═══════════════════════════════════════════════════════════════
 // TIMER DONE MELODY — plays on both rest timer and exercise countdown
+// AudioContext must be created during a user gesture (tap), then reused.
+// unlockAudio() is called at the top of every user-initiated timer function.
 // ═══════════════════════════════════════════════════════════════
+let _audioCtx = null;
+function unlockAudio() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  } catch(e) {}
+}
 function playTimerDone() {
   try { navigator.vibrate([150, 80, 300]); } catch(e) {}
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const master = ctx.createGain();
-    master.gain.value = 0.32;
-    master.connect(ctx.destination);
-    // C5 → E5 → G5 → C6 (rising major chord, ~2 sec total)
-    const notes = [
-      { freq: 523.25, t: 0,    d: 0.22 },
-      { freq: 659.25, t: 0.28, d: 0.22 },
-      { freq: 783.99, t: 0.56, d: 0.22 },
-      { freq: 1046.5, t: 0.9,  d: 0.92 },
-    ];
-    notes.forEach(({ freq, t, d }) => {
-      const osc = ctx.createOscillator();
-      const env = ctx.createGain();
-      osc.connect(env);
-      env.connect(master);
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const now = ctx.currentTime;
-      env.gain.setValueAtTime(0, now + t);
-      env.gain.linearRampToValueAtTime(1, now + t + 0.015);
-      env.gain.exponentialRampToValueAtTime(0.001, now + t + d);
-      osc.start(now + t);
-      osc.stop(now + t + d + 0.05);
+    if (!_audioCtx) return; // not yet unlocked — user hasn't tapped a timer
+    _audioCtx.resume().then(() => {
+      const ctx = _audioCtx;
+      const master = ctx.createGain();
+      master.gain.value = 0.32;
+      master.connect(ctx.destination);
+      // C5 → E5 → G5 → C6 rising major chord (~2 sec)
+      const notes = [
+        { freq: 523.25, t: 0,    d: 0.22 },
+        { freq: 659.25, t: 0.28, d: 0.22 },
+        { freq: 783.99, t: 0.56, d: 0.22 },
+        { freq: 1046.5, t: 0.9,  d: 0.92 },
+      ];
+      notes.forEach(({ freq, t, d }) => {
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        osc.connect(env);
+        env.connect(master);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        const now = ctx.currentTime;
+        env.gain.setValueAtTime(0, now + t);
+        env.gain.linearRampToValueAtTime(1, now + t + 0.015);
+        env.gain.exponentialRampToValueAtTime(0.001, now + t + d);
+        osc.start(now + t);
+        osc.stop(now + t + d + 0.05);
+      });
     });
   } catch(e) {}
 }
@@ -1534,6 +1547,7 @@ function resetCountdown(exId, setIdx, totalSecs) {
 }
 
 function startCountdown(exId, setIdx, totalSecs) {
+  unlockAudio(); // user gesture — safe to create/resume AudioContext here
   const timerId = `cd_${exId}_${setIdx}`;
   const btn = document.getElementById(timerId);
   const fill = document.getElementById(timerId + '_fill');
