@@ -1477,9 +1477,17 @@ function closeRest() {
 // ═══════════════════════════════════════════════════════════════
 let _audioCtx = null;
 function unlockAudio() {
+  // iOS Safari requires (1) creating the context, (2) resuming it, AND
+  // (3) playing a silent buffer — all during the same user gesture.
+  // Without step 3 the context stays suspended and no sound plays.
   try {
     if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const silentBuf = _audioCtx.createBuffer(1, 1, 22050);
+    const silentSrc = _audioCtx.createBufferSource();
+    silentSrc.buffer = silentBuf;
+    silentSrc.connect(_audioCtx.destination);
+    silentSrc.start(0);
   } catch(e) {}
 }
 function playTimerDone() {
