@@ -1436,7 +1436,8 @@ function startRestCountdown() {
       clearInterval(restInterval);
       document.getElementById('restDisplay').className = 'rest-time done';
       document.getElementById('restDisplay').textContent = 'GO!';
-      setTimeout(closeRest, 1200);
+      playTimerDone();
+      setTimeout(closeRest, 2200);
     }
   }, 1000);
 }
@@ -1466,6 +1467,40 @@ function toggleRestPause() {
 function closeRest() {
   if (restInterval) clearInterval(restInterval);
   document.getElementById('restOverlay').className = 'rest-overlay';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TIMER DONE MELODY — plays on both rest timer and exercise countdown
+// ═══════════════════════════════════════════════════════════════
+function playTimerDone() {
+  try { navigator.vibrate([150, 80, 300]); } catch(e) {}
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.value = 0.32;
+    master.connect(ctx.destination);
+    // C5 → E5 → G5 → C6 (rising major chord, ~2 sec total)
+    const notes = [
+      { freq: 523.25, t: 0,    d: 0.22 },
+      { freq: 659.25, t: 0.28, d: 0.22 },
+      { freq: 783.99, t: 0.56, d: 0.22 },
+      { freq: 1046.5, t: 0.9,  d: 0.92 },
+    ];
+    notes.forEach(({ freq, t, d }) => {
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.connect(env);
+      env.connect(master);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const now = ctx.currentTime;
+      env.gain.setValueAtTime(0, now + t);
+      env.gain.linearRampToValueAtTime(1, now + t + 0.015);
+      env.gain.exponentialRampToValueAtTime(0.001, now + t + d);
+      osc.start(now + t);
+      osc.stop(now + t + d + 0.05);
+    });
+  } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1541,6 +1576,7 @@ function startCountdown(exId, setIdx, totalSecs) {
       clearInterval(cd.interval);
       cd.running = false;
       delete activeCountdowns[timerId];
+      playTimerDone();
       // Auto-mark set complete and re-render the card cleanly
       const ex2 = findEx(exId);
       if (ex2) {
@@ -1959,10 +1995,41 @@ function renderAll() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// SCROLL POSITION — save per week+day, restore on page load
+// ═══════════════════════════════════════════════════════════════
+let scrollSaveTimer = null;
+function saveScrollPos() {
+  clearTimeout(scrollSaveTimer);
+  scrollSaveTimer = setTimeout(() => {
+    const sb = document.getElementById('scrollBody');
+    if (!sb) return;
+    S['_sp_' + activeWeek + '_' + activeDay] = sb.scrollTop;
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e) {}
+  }, 200);
+}
+function restoreScrollPos() {
+  const sb = document.getElementById('scrollBody');
+  if (!sb) return;
+  const pos = S['_sp_' + activeWeek + '_' + activeDay] || 0;
+  sb.scrollTop = pos;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════════════════════
 load();
+
+// Auto-navigate to today's day of the week
+const _DAY_IDS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+activeDay = _DAY_IDS[new Date().getDay()];
+save();
+
 renderAll();
+restoreScrollPos();
+
+// Persist scroll position as user scrolls
+const _scrollBody = document.getElementById('scrollBody');
+if (_scrollBody) _scrollBody.addEventListener('scroll', saveScrollPos, { passive: true });
 </script>
 </body>
 </html>
