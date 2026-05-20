@@ -986,6 +986,8 @@ body {
 }
 .set-rest-btn:active { background: var(--blue-dim); color: var(--blue); border-color: var(--blue); transform: scale(.9); }
 .set-row-noweight.done-row { opacity: .55; border-color: #0d2015; }
+.set-weight-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prev-wt-hint { font-size: 10px; color: var(--teal); opacity: .7; text-align: center; letter-spacing: .01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .set-reps-static {
   font-family: 'Barlow Condensed', sans-serif;
   font-size: 16px;
@@ -1211,7 +1213,7 @@ const WARMUP = [
   { id:'wu_clam', name:'Clamshells',              noWeight:true, targetSets:2, targetReps:15, equip:'Light resistance band above knees', chips:[{t:'2 sets',c:'gray'},{t:'15 each side',c:'gray'},{t:'MCL warm-up',c:'green'}], note:'Hips stacked — no rocking. Each side = 1 set.' },
   { id:'wu_tke',  name:'Terminal Knee Extensions', noWeight:true, targetSets:2, targetReps:15, equip:'Band behind knee, anchored low',    chips:[{t:'2 sets',c:'gray'},{t:'15 each leg',c:'gray'},{t:'MCL warm-up',c:'green'}], note:'Squeeze VMO at full extension. Hold 1 sec.' },
   { id:'wu_gb',   name:'Glute Bridges',            noWeight:true, targetSets:2, targetReps:12, equip:'Bodyweight',                       chips:[{t:'2 sets',c:'gray'},{t:'12 reps',c:'gray'},{t:'MCL warm-up',c:'green'}], note:'Press through heels. Knees must not fall inward.' },
-  { id:'wu_hip',  name:'Hip Flexor Lunge Stretch', noWeight:true, targetSets:1, targetReps:1,  timedSeconds:60, equip:'Bodyweight',      chips:[{t:'1 set',c:'gray'},{t:'60 sec each side',c:'amber'},{t:'MCL warm-up',c:'green'}], note:'Lunge position, rear knee down. Counteracts pack-induced pelvic tilt. Timer counts 60 sec — do each side.' },
+  { id:'wu_hip',  name:'Hip Flexor Lunge Stretch', noWeight:true, targetSets:2, targetReps:1,  timedSeconds:60, legLabels:true, equip:'Bodyweight', chips:[{t:'2 sets',c:'gray'},{t:'60 sec each side',c:'amber'},{t:'MCL warm-up',c:'green'}], note:'Lunge position, rear knee down. L timer = left leg forward, R timer = right leg forward. Counteracts pack-induced pelvic tilt.' },
   { id:'wu_tib',  name:'Tibialis Raises (warm-up)', noWeight:true, targetSets:2, targetReps:15, equip:'Wall for support',               chips:[{t:'2 sets',c:'gray'},{t:'15 reps',c:'gray'},{t:'Shin activation',c:'amber'}], note:'Back against wall, feet 12" out. Lift toes, balance on heels 1 sec. Every session in Phase 3.' },
   { id:'wu_ankle', name:'Single-Leg Ankle Stability', noWeight:true, targetSets:2, targetReps:1, timedSeconds:45, legLabels:true, equip:'Flat floor (wk 9-10) · Folded mat or BOSU (wk 11+)', chips:[{t:'2 sets',c:'gray'},{t:'45 sec each leg',c:'amber'},{t:'Ankle proprioception',c:'green'}], note:'Stand on one foot, soft knee bend, hold still. Progress to eyes-closed. Progress to folded mat or BOSU from week 11. Ankle proprioception degrades after 10+ miles — on loose Colorado rock and talus, degraded ankle stability is the leading cause of hike-ending rolled ankles.' },
 ];
@@ -1239,7 +1241,7 @@ const WED_EXERCISES_BASE = [
   { id:'wed_pallof', name:'Pallof Press — Walking',   noWeight:true, targetSets:3, targetReps:10, equip:'Resistance band · anchored at mid height', chips:[{t:'3 sets',c:'blue'},{t:'10 steps each dir.',c:'blue'},{t:'Anti-rotation',c:'purple'}], note:'Floor room — use the band anchored at a door or anchor point at belly-button height. Press band out, walk 5 steps sideways while holding the press, walk back. Anti-rotation under dynamic conditions — more trail-specific than static version.' },
   { id:'wed_twist',  name:'Russian Twist with Press', targetSets:3, targetReps:15, equip:'Medicine ball from floor room', chips:[{t:'3 sets',c:'blue'},{t:'15 each side',c:'blue'},{t:'Monroe variation',c:'purple'}], note:'Floor room — grab medicine ball. Heels slightly off floor. Rotate left, tap ball, PRESS ball away from body, pull back, rotate right. The press-out trains trekking pole shoulder stability simultaneously.' },
   { id:'wed_dead',   name:'Dead Bug',                 noWeight:true, targetSets:3, targetReps:12, equip:'Bodyweight (optional: 5 lb DB in extending arm)', chips:[{t:'3 sets',c:'blue'},{t:'12 each side (slow)',c:'blue'},{t:'Core anti-extension',c:'purple'}], note:'Floor room. Lower back GLUED to floor the entire time — this is the only rule that matters. 3 sec down, 1 sec pause, 3 sec return. Optional: hold 5 lb DB in extending arm.' },
-  { id:'wed_plank',  name:'Plank',                   targetSets:3, targetReps:1, timedSeconds:60, equip:'Bodyweight', chips:[{t:'3 sets',c:'blue'},{t:'60 sec',c:'amber'},{t:'Core endurance',c:'purple'}], note:'Floor room — finish the core cluster here. Squeeze glutes and abs. Elbows under shoulders. Stop when form breaks. 45-sec perfect > 60-sec sloppy.' },
+  { id:'wed_plank',  name:'Plank',                   noWeight:true, targetSets:3, targetReps:1, timedSeconds:60, equip:'Bodyweight', chips:[{t:'3 sets',c:'blue'},{t:'60 sec',c:'amber'},{t:'Core endurance',c:'purple'}], note:'Floor room — finish the core cluster here. Squeeze glutes and abs. Elbows under shoulders. Stop when form breaks. 45-sec perfect > 60-sec sloppy.' },
 ];
 const WED_SLOWLP = { id:'wed_slowlp', name:'Eccentric Leg Press (5-sec lower)', targetSets:3, targetReps:10, equip:'Leg press machine · 60-70% of your normal load', chips:[{t:'3 sets',c:'blue'},{t:'10 reps',c:'blue'},{t:'5-sec descent',c:'amber'},{t:'Downhill sim',c:'red'}], note:'Load 60-70% of your normal leg press weight. Press to full extension. Lower the sled over exactly 5 seconds — count it out loud. The eccentric braking action of your quads on a mountain descent is what destroys untrained legs. The stair climber only goes up — this is your downhill training. Colorado Trail descents regularly drop 2,000-4,000 ft in a day. Wednesday timing keeps legs fresh enough to absorb the eccentric load without compromising Thursday.' };
 
@@ -1793,6 +1795,9 @@ function renderExCard(ex, wk, day, isCustom = false) {
         <button class="countdown-reset-btn" onclick="resetCountdown('${ex.id}',${i},${ex.timedSeconds})" title="Reset timer">
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5A4.5 4.5 0 106.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M2 2.5V6.5H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
+        <div class="set-rest-btn" onclick="openRest()" title="Start rest timer">
+          <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 4.5v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
         <div class="set-done-btn ${set.done?'done':''}" onclick="toggleSetDone('${ex.id}',${i})">
           <svg class="set-done-icon" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke="${set.done?'#030f08':'#93c5fd'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </div>
@@ -1807,12 +1812,16 @@ function renderExCard(ex, wk, day, isCustom = false) {
       <div class="sl-hdr-cell"></div>
       <div class="sl-hdr-cell"></div>
     </div>`;
+    const prevWt = ex.noWeight ? null : prevWtKey(wk, day, ex.id);
     data.sets.forEach((set, i) => {
       const rowClass = ex.noWeight ? 'set-row-noweight' : 'set-row';
       html += `<div class="${rowClass} ${set.done?'done-row':''}" id="setrow_${ex.id}_${i}">
         <div class="set-num">${i+1}</div>
-        ${ex.noWeight ? '' : `<input class="set-input" type="number" inputmode="decimal" placeholder="lbs" value="${set.weight||''}"
-          onchange="updateSetWeight('${ex.id}',${i},this.value)" oninput="updateSetWeight('${ex.id}',${i},this.value)">`}
+        ${ex.noWeight ? '' : `<div class="set-weight-wrap">
+          <input class="set-input" type="number" inputmode="decimal" placeholder="lbs" value="${set.weight||''}"
+            onchange="updateSetWeight('${ex.id}',${i},this.value)" oninput="updateSetWeight('${ex.id}',${i},this.value)">
+          ${prevWt ? `<div class="prev-wt-hint">prev: ${prevWt} lbs</div>` : ''}
+        </div>`}
         <div class="set-reps-static">${ex.targetReps || '—'}</div>
         <div class="set-rest-btn" onclick="openRest()" title="Start rest timer">
           <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M7.5 4.5v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
