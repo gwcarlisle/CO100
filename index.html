@@ -180,6 +180,9 @@ body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-s
 /* ADD EXERCISE */
 .add-ex-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; border: 1px dashed var(--border); border-radius: var(--radius); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; margin-top: 4px; font-family: 'DM Sans', sans-serif; }
 .add-ex-btn:active { background: var(--surface2); }
+/* REST TIMER BUTTON inside exercise card */
+.card-rest-btn { display:flex; align-items:center; justify-content:center; gap:7px; width:100%; padding:9px 14px; background:var(--blue-dim); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--blue); font-size:12px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all .15s; }
+.card-rest-btn:active { background:var(--blue); color:#020d1a; border-color:var(--blue); }
 
 /* MODAL */
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
@@ -447,6 +450,25 @@ function getDayDef(wk) {
   ];
 }
 
+// ── AUTO-WEEK / AUTO-DAY DETECTION ───────────────────────────────────
+// Hike starts August 28, 2026. 4-week block works backward from there.
+const WEEK_STARTS = [
+  new Date('2026-07-27'), // Week 1: Jul 27 – Aug 2
+  new Date('2026-08-03'), // Week 2: Aug 3 – Aug 9
+  new Date('2026-08-10'), // Week 3: Aug 10 – Aug 16
+  new Date('2026-08-17'), // Week 4: Aug 17 – Aug 28+
+];
+function getAutoWeek() {
+  const now = new Date();
+  if (now < WEEK_STARTS[1]) return 1;
+  if (now < WEEK_STARTS[2]) return 2;
+  if (now < WEEK_STARTS[3]) return 3;
+  return 4;
+}
+function getAutoDay() {
+  return ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+}
+
 // ── STATE ─────────────────────────────────────────────────────────────
 const STORE_KEY = 'p4tracker_v1';
 let S = {}, activeWeek = 1, activeDay = 'mon';
@@ -454,7 +476,11 @@ let sessionTimerRunning = false, sessionSeconds = 0, sessionInterval = null;
 let restInterval = null, restRemaining = 90, restTotal = 90, restPaused = false, currentRestPreset = 90;
 const activeCountdowns = {};
 
-function load() { try { S = JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); activeWeek = parseInt(S._week||1); activeDay = S._day||'mon'; } catch(e) { S={}; } }
+function load() {
+  try { S = JSON.parse(localStorage.getItem(STORE_KEY)||'{}'); } catch(e) { S={}; }
+  activeWeek = getAutoWeek();           // Always auto-detect week from date
+  activeDay  = S._day || getAutoDay();  // Restore saved day, or default to today
+}
 function save() { S._week=activeWeek; S._day=activeDay; try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e) {} }
 function dk() { return `w${activeWeek}_${activeDay}`; }
 function exK(id) { return `w${activeWeek}_${activeDay}_${id}`; }
@@ -547,7 +573,11 @@ function resetCountdown(exId, setIdx, totalSecs) {
   const ex=findEx(exId); if(!ex) return;
   const data=getExData(ex.id,ex.targetSets||1,ex.targetReps||1);
   if(data.sets[setIdx].done){data.sets[setIdx].done=false;setExData(ex.id,data);}
-  reRenderCard(exId); renderProgress();
+  const scrollEl=document.getElementById('scrollBody');
+  const savedScroll=scrollEl?scrollEl.scrollTop:0;
+  reRenderExContainer();
+  if(scrollEl) requestAnimationFrame(()=>{ scrollEl.scrollTop=savedScroll; });
+  renderProgress();
 }
 
 function startCountdown(exId, setIdx, totalSecs) {
@@ -579,7 +609,11 @@ function startCountdown(exId, setIdx, totalSecs) {
       if(ex2){
         const data2=getExData(ex2.id,ex2.targetSets||1,ex2.targetReps||1);
         data2.sets[setIdx].done=true; setExData(ex2.id,data2);
-        reRenderCard(exId); renderProgress(); renderDayTabs();
+        const scrollEl2=document.getElementById('scrollBody');
+        const savedScroll2=scrollEl2?scrollEl2.scrollTop:0;
+        reRenderExContainer();
+        if(scrollEl2) requestAnimationFrame(()=>{ scrollEl2.scrollTop=savedScroll2; });
+        renderProgress(); renderDayTabs();
       }
     }
   },1000);
@@ -702,6 +736,7 @@ function renderExCard(ex, wk, day) {
   html+=`<div class="add-set-btn" onclick="addSet('${ex.id}')">
     <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 6h8" stroke="var(--blue)" stroke-width="2" stroke-linecap="round"/></svg> Add set
   </div></div>`;
+  html+=`<div style="padding:6px 14px 4px"><button class="card-rest-btn" onclick="openRest()"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" stroke-width="1.5"/><path d="M7 4.5V7l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>Rest Timer</button></div>`;
   html+=`<div class="notes-section"><textarea class="notes-input" placeholder="Notes — weight used, how it felt, form cues…" oninput="updateNotes('${ex.id}',this.value)">${data.notes||''}</textarea></div>`;
   if(ex.note) html+=`<div class="ex-coaching">${ex.note}</div>`;
   html+=`</div>`;
@@ -769,6 +804,7 @@ function renderGymDay(el,day,w) {
   if(w.taper) html+='<div class="banner banner-amber"><strong>⚠️ TAPER — cut sets by 40%.</strong>Same weights, fewer sets. Protect the legs.</div>';
   if(w.reEngage) html+='<div class="banner banner-orange"><strong>🔄 RE-ENGAGEMENT — 85–90% of Phase 3 weights.</strong>Focus on movement patterns, not PRs.</div>';
   html+=`<div class="banner banner-green"><strong>MCL Warm-Up first — every session, every week.</strong>Clamshells → TKEs → Glute Bridges → Hip Flexor Stretch → Tibialis Raises → Ankle Stability. Non-negotiable.</div>`;
+  html+=`<div id="ex-container">`;
 
   day.sections.forEach(sec=>{
     html+=`<div class="section-hdr"><span class="section-pill ${sec.pill}">${sec.label}</span></div>`;
@@ -788,6 +824,7 @@ function renderGymDay(el,day,w) {
 
   const {done,total}=countCompleted(activeWeek,activeDay);
   if(done===total&&total>0) html+=`<div class="done-banner"><h3>Session Complete! 💪</h3><p>Post-workout protein within 45 min · log it · rest timer is your friend.</p></div>`;
+  html+=`</div>`; // close ex-container
   el.innerHTML=html;
 }
 
@@ -801,12 +838,34 @@ function findEx(exId) {
   return customs.find(c=>c.id===exId)||null;
 }
 
-function reRenderCard(exId) {
-  const ex=findEx(exId); if(!ex) return;
-  const card=document.getElementById('card_'+exId); if(!card) return;
-  const tmp=document.createElement('div');
-  tmp.innerHTML=renderExCard(ex,activeWeek,activeDay);
-  card.replaceWith(tmp.firstElementChild);
+function reRenderExContainer() {
+  const container = document.getElementById('ex-container');
+  if (!container) { renderAll(); return; }
+  const days = getDayDef(activeWeek);
+  const day = days.find(d => d.id === activeDay);
+  if (!day || day.type !== 'gym') { renderAll(); return; }
+
+  let html = '';
+  day.sections.forEach(sec => {
+    html += `<div class="section-hdr"><span class="section-pill ${sec.pill}">${sec.label}</span></div>`;
+    sec.exercises.forEach(ex => { html += renderExCard(ex, activeWeek, activeDay); });
+  });
+  const customs = S[dk()+'_custom'] || [];
+  if (customs.length > 0) {
+    html += '<div class="section-hdr"><span class="section-pill sp-orange">Custom</span></div>';
+    customs.forEach(cx => { html += renderExCard(cx, activeWeek, activeDay); });
+  }
+  html += `<button class="add-ex-btn" onclick="openModal()">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Add Custom Exercise
+  </button>`;
+  const {done, total} = countCompleted(activeWeek, activeDay);
+  if (done === total && total > 0) html += `<div class="done-banner"><h3>Session Complete! 💪</h3><p>Post-workout protein within 45 min · log it · rest timer is your friend.</p></div>`;
+  container.innerHTML = html;
+
+  // Update content progress bar
+  const pw = document.querySelector('.content-progress-wrap');
+  if (pw) { const tmp = document.createElement('div'); tmp.innerHTML = renderContentProgress(activeWeek, activeDay); pw.replaceWith(tmp.firstElementChild); }
 }
 
 function toggleSetDone(exId, setIdx) {
@@ -814,9 +873,13 @@ function toggleSetDone(exId, setIdx) {
   const data=getExData(ex.id,ex.targetSets||1,ex.targetReps||1);
   data.sets[setIdx].done=!data.sets[setIdx].done;
   setExData(ex.id,data);
-  reRenderCard(exId);
-  if(data.sets[setIdx].done&&!ex.timedSeconds) openRest();
+  // Preserve scroll position across re-render
+  const scrollEl=document.getElementById('scrollBody');
+  const savedScroll=scrollEl?scrollEl.scrollTop:0;
+  reRenderExContainer();
+  if(scrollEl) requestAnimationFrame(()=>{ scrollEl.scrollTop=savedScroll; });
   renderProgress(); renderDayTabs();
+  // Rest timer is NOT auto-opened — user taps the Rest Timer button manually
 }
 
 function updateSetWeight(exId, setIdx, val) {
@@ -829,7 +892,11 @@ function addSet(exId) {
   const ex=findEx(exId); if(!ex) return;
   const data=getExData(ex.id,ex.targetSets||1,ex.targetReps||1);
   data.sets.push({reps:ex.targetReps||10,weight:'',done:false});
-  setExData(ex.id,data); reRenderCard(exId);
+  setExData(ex.id,data);
+  const scrollEl=document.getElementById('scrollBody');
+  const savedScroll=scrollEl?scrollEl.scrollTop:0;
+  reRenderExContainer();
+  if(scrollEl) requestAnimationFrame(()=>{ scrollEl.scrollTop=savedScroll; });
 }
 
 function updateNotes(exId,val) {
@@ -839,8 +906,8 @@ function updateNotes(exId,val) {
 }
 
 function toggleCardioComplete() { const k=dk()+'_complete'; S[k]=!S[k]; save(); renderAll(); }
-function switchWeek(wk) { activeWeek=parseInt(wk); save(); renderAll(); document.getElementById('scrollBody').scrollTop=0; }
-function switchDay(id) { activeDay=id; save(); renderAll(); document.getElementById('scrollBody').scrollTop=0; }
+function switchWeek(wk) { activeWeek=parseInt(wk); S._scrollPos=0; S._scrollWeek=activeWeek; save(); renderAll(); document.getElementById('scrollBody').scrollTop=0; }
+function switchDay(id) { activeDay=id; S._scrollPos=0; S._scrollDay=id; save(); renderAll(); document.getElementById('scrollBody').scrollTop=0; }
 
 function openModal() {
   ['newExName','newExEquip'].forEach(id=>document.getElementById(id).value='');
@@ -863,8 +930,33 @@ function saveNewEx() {
   save(); closeModal(); renderAll();
 }
 
-function renderAll() { renderWeekPills(); renderDayTabs(); renderProgress(); renderBody(); }
-load(); renderAll();
+function renderAll() {
+  renderWeekPills(); renderDayTabs(); renderProgress(); renderBody();
+  // Restore scroll position if returning to same week+day
+  if (S._scrollWeek === activeWeek && S._scrollDay === activeDay && S._scrollPos) {
+    requestAnimationFrame(() => {
+      const el = document.getElementById('scrollBody');
+      if (el) el.scrollTop = S._scrollPos;
+    });
+  }
+}
+
+function initScrollSave() {
+  const el = document.getElementById('scrollBody');
+  if (!el) return;
+  let t;
+  el.addEventListener('scroll', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      S._scrollPos = el.scrollTop;
+      S._scrollWeek = activeWeek;
+      S._scrollDay = activeDay;
+      save();
+    }, 250);
+  }, { passive: true });
+}
+
+load(); renderAll(); initScrollSave();
 </script>
 </body>
 </html>
